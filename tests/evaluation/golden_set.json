@@ -1,0 +1,30 @@
+[
+  {
+    "id": "eval_01",
+    "title": "Projekt ustawy o zmianie ustawy o podatku od towarów i usług",
+    "content": "Projekt wdraża obowiązek fakturowania elektronicznego KSeF dla wszystkich podatników VAT czynnych od 1 lipca 2026 r.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "69.20.Z"
+  },
+  {
+    "id": "eval_02",
+    "title": "Projekt ustawy o rozwoju morskich farm wiatrowych",
+    "content": "Ustawa określa system wsparcia dla inwestorów offshore na Morzu Bałtyckim oraz zasady przyłączania do sieci przesyłowej.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.11.Z"
+  },
+  {
+    "id": "eval_03",
+    "title": "Nowelizacja ustawy o ochronie danych i cyberbezpieczeństwie",
+    "content": "Wdrożenie unijnej dyrektywy NIS2 nakłada nowe obowiązki raportowania incydentów na operatorów usług kluczowych.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "62.01.Z"
+  },
+  {
+    "id": "eval_04",
+    "title": "Projekt ustawy o planach ogólnych i warunkach zabudowy",
+    "content": "Gminy otrzymują wydłużony termin na uchwalenie planów ogólnych zastępujących dotychczasowe studia uwarunkowań.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "68.10.Z"
+  }
+]
