@@ -1,0 +1,19 @@
+﻿{
+  "mcpServers": {
+    "barometr-ai-docs": {
+      "command": "python",
+      "args": ["-m", "http.server", "8000", "--directory", "docs"],
+      "description": "Lokalny serwer dokumentacji architektury i ADR dla Barometr AI"
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "description": "Zarządzanie grafem wiedzy i regułami dziedzinowymi projektu Barometr AI"
+    },
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "C:\\Users\\kacpe\\PycharmProjects\\barometr-ai"],
+      "description": "Bezpieczny dostęp do plików projektu Barometr AI"
+    }
+  }
+}
