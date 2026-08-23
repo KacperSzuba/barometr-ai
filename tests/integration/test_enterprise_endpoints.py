@@ -31,7 +31,11 @@ async def test_framing_endpoint(async_client):
         "cluster_id": "c10",
         "articles": [
             {"outlet": "Gazeta A", "title": "Ceny energii podskoczą", "content": "Koszty"},
-            {"outlet": "Gazeta B", "title": "Awantura w Sejmie o wiatraki", "content": "Spór partyjny"},
+            {
+                "outlet": "Gazeta B",
+                "title": "Awantura w Sejmie o wiatraki",
+                "content": "Spór partyjny",
+            },
         ],
     }
     res = await async_client.post("/v1/framing", json=payload)
@@ -48,9 +52,24 @@ async def test_briefing_endpoint(async_client):
         "raw_texts": ["Rząd przyjął uchwałę o lokalizacji pierwszej elektrowni jądrowej w Polsce."],
     }
     res = await async_client.post("/v1/briefing", json=payload)
-    assert res.status_code == 200
-    data = res.json()
-    assert len(data["executive_summary"]) > 0
+    # Endpoint jest świadomie wyłączony: poprzednia implementacja zwracała stałą oś czasu
+    # z zaszytymi datami niezależnie od wejścia. 501 jest uczciwszy niż zmyślone dane.
+    assert res.status_code == 501
+    assert res.json()["detail"]["error"] == "NOT_IMPLEMENTED"
+
+
+@pytest.mark.asyncio
+async def test_forecast_endpoint_is_disabled(async_client):
+    payload = {
+        "stage": "sejm_committee",
+        "sponsor_type": "GOVERNMENT",
+        "days_in_current_stage": 40,
+        "governing_coalition_support": True,
+    }
+    res = await async_client.post("/v1/forecast", json=payload)
+    # Base rates były stałymi w kodzie podawanymi jako częstości historyczne.
+    assert res.status_code == 501
+    assert res.json()["detail"]["error"] == "NOT_IMPLEMENTED"
 
 
 @pytest.mark.asyncio
@@ -69,8 +88,18 @@ async def test_gov_endpoints(async_client):
     # 1. Sondaże
     polls_payload = {
         "polls": [
-            {"pollster": "IBRiS", "sample_size": 1000, "date": "2026-08-01", "results": {"Partia A": 33.0}},
-            {"pollster": "CBOS", "sample_size": 1000, "date": "2026-08-05", "results": {"Partia A": 35.0}},
+            {
+                "pollster": "IBRiS",
+                "sample_size": 1000,
+                "date": "2026-08-01",
+                "results": {"Partia A": 33.0},
+            },
+            {
+                "pollster": "CBOS",
+                "sample_size": 1000,
+                "date": "2026-08-05",
+                "results": {"Partia A": 35.0},
+            },
         ]
     }
     res_polls = await async_client.post("/v1/gov/polls", json=polls_payload)
@@ -79,7 +108,9 @@ async def test_gov_endpoints(async_client):
 
     # 2. Skrzynka obywatelska
     fb_payload = {
-        "messages": [{"id": f"m_{i}", "message": "Prosimy o remont drogi gminnej."} for i in range(55)],
+        "messages": [
+            {"id": f"m_{i}", "message": "Prosimy o remont drogi gminnej."} for i in range(55)
+        ],
         "min_k_threshold": 50,
     }
     res_fb = await async_client.post("/v1/gov/feedback", json=fb_payload)

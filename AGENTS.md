@@ -42,9 +42,9 @@ Plik ten stanowi nadrzędną instrukcję architektoniczną i jakościową dla mo
      ```python
      class StrictSchema(BaseModel):
          model_config = ConfigDict(
-             extra="forbid",        # Odrzucaj nieznane pola
-             frozen=True,           # Niemutowalność DTO domyślnie
-             str_strip_whitespace=True
+             extra="forbid",  # Odrzucaj nieznane pola
+             frozen=True,  # Niemutowalność DTO domyślnie
+             str_strip_whitespace=True,
          )
      ```
 
@@ -80,3 +80,33 @@ Plik ten stanowi nadrzędną instrukcję architektoniczną i jakościową dla mo
    - Formatowanie i Linting: `ruff check .` oraz `ruff format .`
    - Sprawdzanie typów: `mypy --strict src`
    - Uruchamianie testów: `pytest -v --asyncio-mode=auto`
+
+---
+
+## 4. Reguła Zakazu Stałych Pewnościowych
+
+Wprowadzona po audycie z 23.08.2026, w którym dziesięć pól odpowiedzi API zwracało wartości
+wpisane wprost w kod, podane odbiorcy jako dane pochodne (m.in. `neutrality_score=0.88`,
+`correlation_confidence=0.85`, `historical_base_rate=0.82`, margines błędu sondażu 2,8 pkt
+identyczny dla partii z 3% i z 35%).
+
+**Reguła:** żadne pole typu `score`, `confidence`, `probability`, `margin`, `rate` ani
+`expected_*` nie może mieć w kodzie serwisu wartości literalnej.
+
+Dopuszczalne są dokładnie trzy warianty:
+
+1. **Policzone z wejścia żądania** — wraz z polem opisującym metodę
+   (`method`, `correlation_method`, `methodology_note`), żeby wynik dało się wytłumaczyć.
+2. **`None` z jawnym powodem w opisie pola** — gdy pomiar nie jest zaimplementowany.
+   `None` jest uczciwą odpowiedzią; zmyślona liczba nie jest.
+3. **Nazwana stała progowa na poziomie modułu** — próg decyzyjny (`MIN_RELEVANCE`,
+   `ANOMALY_RATIO`, `Z_95`), a nie wynik pomiaru. Musi mieć komentarz uzasadniający wartość.
+
+**Endpoint, który nie umie policzyć swojego wyniku, zwraca `501`, a nie prawdopodobną liczbę.**
+Dotyczy to w szczególności produktu, którego obietnicą jest weryfikowalna proweniencja:
+poprawnie ustrukturyzowana odpowiedź ze zmyśloną treścią przechodzi każdy walidator schematu
+i każdy test kontraktowy, a jest dokładnie tą awarią, przed którą cała architektura chroni.
+
+**Metadane odpowiedzi muszą opisywać to, co faktycznie wykonało inferencję.** `model_version`
+i `prompt_version` nie mogą być stałymi z konfiguracji, gdy żaden model nie został wywołany.
+Wynik adaptera zastępczego zawsze niesie `is_generative=false`.

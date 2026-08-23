@@ -2,7 +2,7 @@
 
 from enum import Enum
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from barometr_ai.domain.models import BaseDTO
 from barometr_ai.domain.provenance import GroundedStatement
@@ -10,31 +10,50 @@ from barometr_ai.domain.provenance import GroundedStatement
 
 # --- F2: /v1/novelty ---
 class NoveltyType(str, Enum):
-    NEW_EVENT = "new_event"          # Zupełnie nowe zdarzenie w sprawie
-    ELABORATION = "elaboration"      # Rozwinięcie / nowe szczegóły
-    RECYCLED = "recycled"            # Powtórzenie znanych faktów (do ukrycia)
-    COMMENTARY = "commentary"        # Publicystyka / opinia
+    NEW_EVENT = "new_event"  # Zupełnie nowe zdarzenie w sprawie
+    ELABORATION = "elaboration"  # Rozwinięcie / nowe szczegóły
+    RECYCLED = "recycled"  # Powtórzenie znanych faktów (do ukrycia)
+    COMMENTARY = "commentary"  # Publicystyka / opinia
 
 
 class NoveltyRequest(BaseDTO):
     new_text: str = Field(..., min_length=10)
     history_texts: list[str] = Field(default_factory=list)
-    similarity_threshold: float = Field(default=0.80)
+    similarity_threshold: float = Field(
+        default=0.85, ge=0.0, le=1.0, description="Próg uznania materiału za recykling"
+    )
+    elaboration_threshold: float = Field(
+        default=0.65, ge=0.0, le=1.0, description="Próg uznania materiału za rozwinięcie tematu"
+    )
+
+    @model_validator(mode="after")
+    def _thresholds_ordered(self) -> "NoveltyRequest":
+        if self.elaboration_threshold > self.similarity_threshold:
+            raise ValueError(
+                "elaboration_threshold nie może być wyższy niż similarity_threshold — "
+                "klasa ELABORATION byłaby wtedy nieosiągalna."
+            )
+        return self
 
 
 class NoveltyResponse(BaseDTO):
     classification: NoveltyType
-    novelty_score: float = Field(..., ge=0.0, le=1.0, description="1.0 = całkowita nowość, 0.0 = pełny recykling")
+    novelty_score: float = Field(
+        ..., ge=0.0, le=1.0, description="1.0 = całkowita nowość, 0.0 = pełny recykling"
+    )
     highest_similarity: float
-    is_suppressed: bool = Field(..., description="True jeśli materiał jest recyklingiem i powinien być ukryty")
+    is_suppressed: bool = Field(
+        ..., description="True jeśli materiał jest recyklingiem i powinien być ukryty"
+    )
+    method: str = Field(..., description="Jawny opis metody i progów użytych do klasyfikacji")
 
 
 # --- F2: /v1/ner ---
 class EntityType(str, Enum):
-    PERSON = "person"                # Poseł, minister, urzędnik
-    INSTITUTION = "institution"      # Sejm, Ministerstwo, UOKiK, KNF
-    COMPANY = "company"              # Spółka, bank, podmiot gospodarczy
-    LEGAL_ACT = "legal_act"          # Druk sejmowy, ustawa, Dz.U.
+    PERSON = "person"  # Poseł, minister, urzędnik
+    INSTITUTION = "institution"  # Sejm, Ministerstwo, UOKiK, KNF
+    COMPANY = "company"  # Spółka, bank, podmiot gospodarczy
+    LEGAL_ACT = "legal_act"  # Druk sejmowy, ustawa, Dz.U.
 
 
 class ExtractedEntity(BaseDTO):
@@ -42,13 +61,13 @@ class ExtractedEntity(BaseDTO):
     entity_type: EntityType
     char_start: int
     char_end: int
-    role: str | None = None          # wnioskodawca, sprawozdawca, zgłaszający uwagę
+    role: str | None = None  # wnioskodawca, sprawozdawca, zgłaszający uwagę
 
 
 class EntityRelation(BaseDTO):
     source_entity: str
     target_entity: str
-    relation_type: str               # SUBMITTED, AMENDED, REGULATES, OPPOSES
+    relation_type: str  # SUBMITTED, AMENDED, REGULATES, OPPOSES
 
 
 class NERRequest(BaseDTO):
@@ -63,16 +82,25 @@ class NERResponse(BaseDTO):
 # --- F3: /v1/framing ---
 class FramingType(str, Enum):
     COST_OF_LIVING = "cost_of_living"  # Wpływ na portfel obywatela
-    PROCEDURAL = "procedural"          # Przebieg legislacyjny / terminy
-    POLITICAL = "political"            # Spór partyjny / koalicja
-    EXPERT = "expert"                  # Analiza prawno-ekonomiczna
+    PROCEDURAL = "procedural"  # Przebieg legislacyjny / terminy
+    POLITICAL = "political"  # Spór partyjny / koalicja
+    EXPERT = "expert"  # Analiza prawno-ekonomiczna
 
 
 class MediaOutletFraming(BaseDTO):
     outlet_name: str
-    dominant_framing: FramingType
-    neutrality_score: float = Field(..., ge=0.0, le=1.0)
-    ownership_transparency: str
+    dominant_framing: FramingType | None = Field(
+        default=None, description="None gdy sygnały leksykalne nie rozstrzygają ramy"
+    )
+    framing_signal_count: int = Field(
+        default=0, ge=0, description="Liczba trafień leksykalnych, na których oparto klasyfikację"
+    )
+    neutrality_score: float | None = Field(
+        default=None, description="None dopóki pomiar tonu wobec sprawy nie jest zaimplementowany"
+    )
+    ownership_transparency: str | None = Field(
+        default=None, description="None dopóki brak integracji z rejestrem KRS wydawcy"
+    )
 
 
 class FramingAnalysisRequest(BaseDTO):
@@ -83,7 +111,12 @@ class FramingAnalysisRequest(BaseDTO):
 class FramingAnalysisResponse(BaseDTO):
     cluster_id: str
     outlets: list[MediaOutletFraming]
-    framing_diversity_score: float
+    framing_diversity_score: float = Field(
+        ..., ge=0.0, le=1.0, description="Udział odrębnych ram wśród sklasyfikowanych materiałów"
+    )
+    unclassified_count: int = Field(
+        default=0, ge=0, description="Materiały bez rozstrzygniętej ramy"
+    )
 
 
 # --- F3: /v1/briefing ---
@@ -118,10 +151,20 @@ class LocalParseRequest(BaseDTO):
 class LocalParseResponse(BaseDTO):
     doc_type: LocalDocType
     resolution_number: str | None = None
-    subject: str
+    subject: str | None = Field(
+        default=None, description="Przedmiot z formuły 'w sprawie ...'; None gdy nieobecna"
+    )
     is_spatial_planning: bool
-    budget_impact_pln: float | None = None
-    summary_plain_polish: str
+    budget_impact_pln: float | None = Field(
+        default=None, description="Kwota wyłącznie z kontekstu budżetowego; None gdy niepewna"
+    )
+    detected_amounts_pln: list[float] = Field(
+        default_factory=list, description="Wszystkie kwoty rozpoznane w dokumencie, w kolejności"
+    )
+    summary_plain_polish: str | None = Field(
+        default=None,
+        description="None dopóki streszczanie prostym językiem nie jest zaimplementowane",
+    )
 
 
 # --- F5: /v1/gov/polls ---
@@ -139,8 +182,12 @@ class PollsAggregateRequest(BaseDTO):
 
 class PollsAggregateResponse(BaseDTO):
     pooled_average: dict[str, float]
-    confidence_error_margins: dict[str, float]
-    house_effects: dict[str, dict[str, float]]  # pollster -> partia -> odchylenie
+    confidence_error_margins: dict[str, float] = Field(
+        ..., description="Połowa szerokości przedziału 95% w punktach procentowych, per partia"
+    )
+    house_effects: dict[str, dict[str, float]] = Field(
+        ..., description="pollster -> partia -> odchylenie od średniej leave-one-out"
+    )
     methodology_note: str
 
 
@@ -159,7 +206,9 @@ class FeedbackCluster(BaseDTO):
     topic: str
     paraphrase_summary: str
     count: int = Field(..., ge=50, description="Nigdy nie ujawniane poniżej progu k >= 50")
-    sentiment: str
+    sentiment: str | None = Field(
+        default=None, description="None dopóki analiza sentymentu nie jest zaimplementowana"
+    )
 
 
 class CitizenFeedbackResponse(BaseDTO):

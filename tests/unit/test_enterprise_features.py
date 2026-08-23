@@ -1,6 +1,5 @@
 """Testy jednostkowe modułów F2-F5: Nowość, NER, Framing, Briefing, Samorząd, Sondaże, k>=50."""
 
-from barometr_ai.adapters.fastembed_adapter import FastEmbedAdapter
 from barometr_ai.domain.enterprise_models import (
     BriefingRequest,
     CitizenFeedbackRequest,
@@ -23,13 +22,15 @@ from barometr_ai.services.multi_briefing_service import MultiBriefingService
 from barometr_ai.services.novelty_detector import NoveltyDetectorService
 
 
-def test_novelty_detector_recycled_and_new() -> None:
-    detector = NoveltyDetectorService(FastEmbedAdapter())
+def test_novelty_detector_recycled_and_new(embedder) -> None:
+    detector = NoveltyDetectorService(embedder)
 
     # 1. Dokładne powtórzenie znanych faktów -> RECYCLED
     req_recycled = NoveltyRequest(
         new_text="Sejm przyjął wczoraj ustawę o obniżeniu podatku PIT dla przedsiębiorców.",
-        history_texts=["Wczoraj Sejm uchwalił ustawę obniżającą stawki podatku dochodowego PIT dla firm."],
+        history_texts=[
+            "Wczoraj Sejm uchwalił ustawę obniżającą stawki podatku dochodowego PIT dla firm."
+        ],
     )
     res_recycled = detector.evaluate_novelty(req_recycled)
     assert res_recycled.classification in [NoveltyType.RECYCLED, NoveltyType.ELABORATION]
@@ -51,15 +52,38 @@ def test_ner_extraction() -> None:
     entity_names = [e.name for e in res.entities]
     assert any("Minister Adam Nowak" in n for n in entity_names)
     assert any("Sejm" in n for n in entity_names)
-    assert len(res.relations) > 0
+
+    # Offsety musza wskazywac faktyczne miejsce wystapienia encji w tekscie.
+    for entity in res.entities:
+        assert text[entity.char_start : entity.char_end] == entity.name
+
+    # Relacja zgadnieta z kolejnosci encji byla zmyslona. Do czasu rozstrzygania
+    # tozsamosci i analizy zdania lista pozostaje pusta - patrz P1 w audycie.
+    assert res.relations == []
+
+
+def test_ner_matches_abbreviated_title() -> None:
+    """Regresja: wzorzec wymagal tytulu i dokladnie dwoch czlonow, wiec gubil 'min. Nowak'."""
+    res = EntityExtractorService.extract_entities(
+        NERRequest(text="Jak podal min. Nowak, projekt trafi do Sejmu w przyszlym tygodniu.")
+    )
+    assert any("Nowak" in e.name for e in res.entities)
 
 
 def test_framing_analysis() -> None:
     req = FramingAnalysisRequest(
         cluster_id="cluster_44",
         articles=[
-            {"outlet": "Gazeta Finansowa", "title": "Nowy podatek uderzy w ceny i portfele Polaków", "content": "Koszty życia wzrosną."},
-            {"outlet": "Dziennik Prawny", "title": "Sejm przyjął ustawę: zobacz procedurę i terminy", "content": "Głosowanie i vacatio legis."},
+            {
+                "outlet": "Gazeta Finansowa",
+                "title": "Nowy podatek uderzy w ceny i portfele Polaków",
+                "content": "Koszty życia wzrosną.",
+            },
+            {
+                "outlet": "Dziennik Prawny",
+                "title": "Sejm przyjął ustawę: zobacz procedurę i terminy",
+                "content": "Głosowanie i vacatio legis.",
+            },
         ],
     )
     res = StakeholderFramingService.analyze_framing(req)
@@ -84,7 +108,9 @@ def test_multi_level_briefing() -> None:
 
 def test_local_document_parser() -> None:
     bip_mpzp = "Uchwała Nr XII/88/2026 Rady Gminy w sprawie miejscowego planu zagospodarowania przestrzennego (MPZP)."
-    res = LocalDocumentParserService.parse_document(LocalParseRequest(bip_text=bip_mpzp, gmina_teryt="146501"))
+    res = LocalDocumentParserService.parse_document(
+        LocalParseRequest(bip_text=bip_mpzp, gmina_teryt="146501")
+    )
     assert res.doc_type == LocalDocType.MPZP
     assert res.is_spatial_planning is True
     assert res.resolution_number is not None
@@ -94,8 +120,18 @@ def test_gov_polls_and_citizen_feedback_privacy() -> None:
     # 1. Sondaże
     polls_req = PollsAggregateRequest(
         polls=[
-            PollItem(pollster="IBRiS", sample_size=1100, date="2026-08-01", results={"Partia A": 34.5, "Partia B": 31.0}),
-            PollItem(pollster="CBOS", sample_size=1000, date="2026-08-10", results={"Partia A": 36.0, "Partia B": 29.5}),
+            PollItem(
+                pollster="IBRiS",
+                sample_size=1100,
+                date="2026-08-01",
+                results={"Partia A": 34.5, "Partia B": 31.0},
+            ),
+            PollItem(
+                pollster="CBOS",
+                sample_size=1000,
+                date="2026-08-10",
+                results={"Partia A": 36.0, "Partia B": 29.5},
+            ),
         ]
     )
     res_polls = GovAnalyticsService.aggregate_polls(polls_req)
@@ -104,7 +140,9 @@ def test_gov_polls_and_citizen_feedback_privacy() -> None:
 
     # 2. Skrzynka z bezpiecznikiem k >= 50
     # Tworzymy 60 wiadomości o energii (spełnia k >= 50) i 10 o edukacji (poniżej progu k=50)
-    messages = [FeedbackItem(id=f"e_{i}", message="Wysokie ceny prądu i energii.") for i in range(60)]
+    messages = [
+        FeedbackItem(id=f"e_{i}", message="Wysokie ceny prądu i energii.") for i in range(60)
+    ]
     messages.extend([FeedbackItem(id=f"s_{i}", message="Brak miejsc w szkole.") for i in range(10)])
 
     fb_req = CitizenFeedbackRequest(messages=messages, min_k_threshold=50)

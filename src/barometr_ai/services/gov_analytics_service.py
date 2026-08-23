@@ -1,14 +1,19 @@
 """Agregator sondaży i Skrzynka Obywatelska z twardym progiem prywatności k >= 50 (F5 Gov)."""
 
+import math
 from collections import defaultdict
 
 from barometr_ai.domain.enterprise_models import (
     CitizenFeedbackRequest,
     CitizenFeedbackResponse,
     FeedbackCluster,
+    PollItem,
     PollsAggregateRequest,
     PollsAggregateResponse,
 )
+
+#: Wartość krytyczna rozkładu normalnego dla dwustronnego przedziału 95%.
+Z_95 = 1.959964
 
 
 class GovAnalyticsService:
@@ -16,37 +21,88 @@ class GovAnalyticsService:
 
     @staticmethod
     def aggregate_polls(request: PollsAggregateRequest) -> PollsAggregateResponse:
-        totals: dict[str, float] = defaultdict(float)
-        weights_total: dict[str, float] = defaultdict(float)
-        house_effects: dict[str, dict[str, float]] = defaultdict(dict)
+        """Uśrednia sondaże z jawną metodologią i policzonym pasmem błędu."""
+        pooled = GovAnalyticsService._weighted_average(request.polls)
+        effective_sample = sum(poll.sample_size for poll in request.polls)
 
-        for poll in request.polls:
-            w = float(poll.sample_size) / 1000.0
-            for party, val in poll.results.items():
-                totals[party] += val * w
-                weights_total[party] += w
+        # Pasmo błędu zależy od wielkości próby ORAZ od szacowanego udziału. Stała wartość
+        # dla każdej partii była statystycznie nieprawdziwa zarówno przy 3%, jak i przy 35%.
+        error_margins = {
+            party: GovAnalyticsService._margin_of_error(share, effective_sample)
+            for party, share in pooled.items()
+        }
 
-        pooled: dict[str, float] = {}
-        error_margins: dict[str, float] = {}
-
-        for party, total_val in totals.items():
-            avg = total_val / weights_total[party]
-            pooled[party] = round(avg, 2)
-            # Pasmo błędu
-            error_margins[party] = 2.8
-
-        # Wyliczenie house effect per ośrodek
-        for poll in request.polls:
-            for party, val in poll.results.items():
-                diff = round(val - pooled.get(party, val), 2)
-                house_effects[poll.pollster][party] = diff
+        house_effects = GovAnalyticsService._house_effects(request.polls, pooled)
 
         return PollsAggregateResponse(
             pooled_average=pooled,
             confidence_error_margins=error_margins,
-            house_effects=dict(house_effects),
-            methodology_note="Średnia ważona wielkością próby z jawną korektą efektów domów sondażowych.",
+            house_effects=house_effects,
+            methodology_note=(
+                f"Średnia ważona wielkością próby z {len(request.polls)} sondaży "
+                f"(łączna próba {effective_sample}). Pasmo błędu: przedział 95% dla frakcji, "
+                f"z = {Z_95:.2f}, liczone z łącznej próby i szacowanego udziału. "
+                "Efekt domu sondażowego liczony metodą leave-one-out — ośrodek porównywany "
+                "jest do średniej BEZ jego własnych sondaży, żeby nie zaniżać odchylenia. "
+                "Pasmo obejmuje wyłącznie błąd losowania; nie obejmuje błędu doboru próby "
+                "ani różnic metodologicznych między ośrodkami."
+            ),
         )
+
+    @staticmethod
+    def _weighted_average(polls: list[PollItem]) -> dict[str, float]:
+        totals: dict[str, float] = defaultdict(float)
+        weights: dict[str, float] = defaultdict(float)
+        for poll in polls:
+            weight = float(poll.sample_size)
+            for party, value in poll.results.items():
+                totals[party] += value * weight
+                weights[party] += weight
+        return {
+            party: round(total / weights[party], 2)
+            for party, total in totals.items()
+            if weights[party]
+        }
+
+    @staticmethod
+    def _margin_of_error(share_percent: float, sample_size: int) -> float:
+        """Połowa szerokości przedziału 95% dla frakcji, w punktach procentowych."""
+        if sample_size <= 0:
+            return 0.0
+        p = min(max(share_percent / 100.0, 0.0), 1.0)
+        return round(Z_95 * math.sqrt(p * (1.0 - p) / sample_size) * 100.0, 2)
+
+    @staticmethod
+    def _house_effects(
+        polls: list[PollItem], pooled: dict[str, float]
+    ) -> dict[str, dict[str, float]]:
+        """Odchylenie ośrodka od średniej policzonej BEZ jego własnych sondaży.
+
+        Porównanie do średniej zawierającej dany ośrodek jest endogeniczne i systematycznie
+        zaniża efekt — tym mocniej, im mniej sondaży w puli.
+        """
+        pollsters = {poll.pollster for poll in polls}
+        effects: dict[str, dict[str, float]] = {}
+
+        for pollster in pollsters:
+            others = [poll for poll in polls if poll.pollster != pollster]
+            if not others:
+                # Jeden ośrodek w puli — nie ma do czego porównać. Brak wyniku jest
+                # uczciwszy niż zero sugerujące zerowy efekt.
+                continue
+            baseline = GovAnalyticsService._weighted_average(others)
+            own = GovAnalyticsService._weighted_average(
+                [poll for poll in polls if poll.pollster == pollster]
+            )
+            deviations = {
+                party: round(value - baseline[party], 2)
+                for party, value in own.items()
+                if party in baseline
+            }
+            if deviations:
+                effects[pollster] = deviations
+
+        return effects
 
     @staticmethod
     def process_citizen_feedback(request: CitizenFeedbackRequest) -> CitizenFeedbackResponse:
@@ -55,9 +111,10 @@ class GovAnalyticsService:
 
         topic_counts: dict[str, list[str]] = defaultdict(list)
         for msg in request.messages:
-            if "cen" in msg.message.lower() or "prąd" in msg.message.lower():
+            lowered = msg.message.lower()
+            if "cen" in lowered or "prąd" in lowered:
                 topic = "Koszty energii i ogrzewania"
-            elif "szkoł" in msg.message.lower() or "edukacj" in msg.message.lower():
+            elif "szkoł" in lowered or "edukacj" in lowered:
                 topic = "Edukacja i opieka przedszkolna"
             else:
                 topic = "Inne sprawy lokalne"
@@ -72,9 +129,15 @@ class GovAnalyticsService:
                 clusters.append(
                     FeedbackCluster(
                         topic=topic,
-                        paraphrase_summary=f"Zbiorcze zgłoszenia dotyczące obszaru '{topic}' (parafraza zagregowana).",
+                        # Nie jest to parafraza treści zgłoszeń — to opis zbioru. Realna
+                        # parafraza wymaga modelu językowego i osobnej bramki prywatności.
+                        paraphrase_summary=(
+                            f"Zgłoszenia przypisane do obszaru '{topic}' na podstawie "
+                            f"dopasowania słów kluczowych ({count} szt.)."
+                        ),
                         count=count,
-                        sentiment="NEUTRAL_OR_CONCERN",
+                        # Sentyment nie jest mierzony. `None` zamiast zmyślonej etykiety.
+                        sentiment=None,
                     )
                 )
             else:

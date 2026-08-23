@@ -1,11 +1,15 @@
 """Domain and infrastructure exceptions for Barometr AI."""
 
+from typing import Any
+
+
 class BarometrAIError(Exception):
     """Base exception for all Barometr AI errors."""
-    def __init__(self, message: str, details: dict | None = None) -> None:
+
+    def __init__(self, message: str, details: dict[str, Any] | None = None) -> None:
         super().__init__(message)
         self.message = message
-        self.details = details or {}
+        self.details: dict[str, Any] = details or {}
 
 
 class ProvenanceViolationError(BarometrAIError):
@@ -13,7 +17,7 @@ class ProvenanceViolationError(BarometrAIError):
 
 
 class ModelInferenceError(BarometrAIError):
-    """Raised when a model fails during inference."""
+    """Raised when a model fails during inference or cannot be loaded."""
 
 
 class BudgetExceededError(BarometrAIError):

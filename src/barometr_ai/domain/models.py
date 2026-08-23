@@ -3,6 +3,7 @@
 from pydantic import BaseModel, ConfigDict, Field
 
 from barometr_ai.domain.provenance import GroundedStatement
+from barometr_ai.ports.embedder import InputType
 
 
 class BaseDTO(BaseModel):
@@ -11,13 +12,22 @@ class BaseDTO(BaseModel):
 
 # --- /v1/embed ---
 class EmbedRequest(BaseDTO):
-    texts: list[str] = Field(..., min_length=1, max_length=128, description="List of texts to embed")
+    texts: list[str] = Field(
+        ..., min_length=1, max_length=128, description="List of texts to embed"
+    )
     normalize: bool = Field(default=True, description="L2 normalization for cosine similarity")
+    input_type: InputType = Field(
+        default="passage",
+        description="passage = dokument do indeksu, query = zapytanie. Istotne dla modeli rodziny E5.",
+    )
 
 
 class EmbedResponse(BaseDTO):
     embeddings: list[list[float]]
-    model_version: str
+    model_name: str
+    model_version: str = Field(
+        ..., description="Wersja wektorów; jej zmiana wymusza przeliczenie indeksu pgvector"
+    )
     dimension: int
     count: int
 
@@ -81,6 +91,22 @@ class SummarizeResponse(BaseDTO):
     what_changed: GroundedStatement | None = None
     who_is_affected: GroundedStatement | None = None
     next_steps: GroundedStatement | None = None
+    additional_findings: list[GroundedStatement] = Field(default_factory=list)
+    rejected_sections: list[str] = Field(
+        default_factory=list,
+        description="Sekcje odrzucone przez walidator proweniencji po wyczerpaniu prób regeneracji",
+    )
+    attempts: int = Field(
+        default=1, ge=1, description="Liczba wywołań modelu użytych do zbudowania odpowiedzi"
+    )
+    is_generative: bool = Field(
+        ...,
+        description="False, gdy odpowiedź pochodzi z adaptera zastępczego, a nie z modelu językowego",
+    )
+    tokens_are_estimated: bool = Field(
+        default=False,
+        description="True, gdy licznik tokenów jest szacunkiem lokalnym, a nie danymi dostawcy",
+    )
     model_version: str
     prompt_version: str
     total_tokens: int

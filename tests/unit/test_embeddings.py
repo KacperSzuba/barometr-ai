@@ -1,7 +1,6 @@
 """Testy jakościowe dla lokalnego modelu embeddingów i podobieństwa kosinusowego."""
 
 import numpy as np
-import pytest
 
 from barometr_ai.adapters.fastembed_adapter import FastEmbedAdapter
 
@@ -11,12 +10,6 @@ def cosine_similarity(vec_a: list[float], vec_b: list[float]) -> float:
     a = np.array(vec_a)
     b = np.array(vec_b)
     return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
-
-
-@pytest.fixture(scope="module")
-def embedder() -> FastEmbedAdapter:
-    """Fixture ładujący model raz dla całego modułu testowego."""
-    return FastEmbedAdapter()
 
 
 def test_embedder_dimension_and_count(embedder: FastEmbedAdapter) -> None:

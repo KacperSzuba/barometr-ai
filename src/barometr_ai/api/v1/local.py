@@ -8,6 +8,8 @@ from barometr_ai.services.local_parser_service import LocalDocumentParserService
 router = APIRouter(tags=["Local"])
 
 
-@router.post("/local/parse", response_model=LocalParseResponse, summary="Parsuj uchwałę/budżet/MPZP z BIP")
+@router.post(
+    "/local/parse", response_model=LocalParseResponse, summary="Parsuj uchwałę/budżet/MPZP z BIP"
+)
 async def parse_local_document(request: LocalParseRequest) -> LocalParseResponse:
     return LocalDocumentParserService.parse_document(request)

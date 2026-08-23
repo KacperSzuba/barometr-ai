@@ -8,6 +8,10 @@ from barometr_ai.services.legal_diff_service import LegalDiffService
 router = APIRouter(tags=["Diff"])
 
 
-@router.post("/diff", response_model=LegalDiffResponse, summary="Porównaj wersje projektu i powiąż z uwagami RCL")
+@router.post(
+    "/diff",
+    response_model=LegalDiffResponse,
+    summary="Porównaj wersje projektu i powiąż z uwagami RCL",
+)
 async def compare_versions(request: LegalDiffRequest) -> LegalDiffResponse:
     return LegalDiffService.compare_and_correlate(request)

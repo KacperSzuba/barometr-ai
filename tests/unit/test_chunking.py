@@ -7,6 +7,7 @@ def test_empty_text_returns_empty_chunks() -> None:
     chunks = service.split_text(document_id="doc_1", text="    ")
     assert chunks == []
 
+
 def test_short_text_single_chunk() -> None:
     """Test 2: Tekst krótszy niż target_chunk_size powinien dać dokładnie 1 chunk."""
     service = ChunkingService(target_chunk_size=500)
@@ -45,5 +46,5 @@ def test_long_legal_text_splits_and_preserves_provenance() -> None:
         assert chunk.span.validate_against_text(long_text) is True
 
         # 2. Wycinamy ręcznie z tekstu po indeksach i sprawdzamy zgodność
-        extracted = long_text[chunk.span.char_start:chunk.span.char_end]
+        extracted = long_text[chunk.span.char_start : chunk.span.char_end]
         assert extracted == chunk.text

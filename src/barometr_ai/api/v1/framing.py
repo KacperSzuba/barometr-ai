@@ -8,6 +8,10 @@ from barometr_ai.services.framing_analyzer import StakeholderFramingService
 router = APIRouter(tags=["Framing"])
 
 
-@router.post("/framing", response_model=FramingAnalysisResponse, summary="Analiza ramy narracyjnej w redakcjach")
+@router.post(
+    "/framing",
+    response_model=FramingAnalysisResponse,
+    summary="Analiza ramy narracyjnej w redakcjach",
+)
 async def analyze_framing(request: FramingAnalysisRequest) -> FramingAnalysisResponse:
     return StakeholderFramingService.analyze_framing(request)

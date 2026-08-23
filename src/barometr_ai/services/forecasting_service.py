@@ -56,7 +56,7 @@ class ForecastingService:
             historical_base_rate=round(base_rate, 2),
             brier_score_target=0.12,
             explanation=(
-                f"Prognoza oparta na wnioskodawcy ({request.sponsor_type}: {base_rate*100:.0f}% szans historycznych) "
+                f"Prognoza oparta na wnioskodawcy ({request.sponsor_type}: {base_rate * 100:.0f}% szans historycznych) "
                 f"oraz zaawansowaniu etapu ({request.stage.value})."
             ),
         )

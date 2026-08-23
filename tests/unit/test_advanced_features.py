@@ -28,22 +28,52 @@ def test_relevance_scorer_critical_urgency() -> None:
 
 
 def test_silence_radar_detects_anomaly() -> None:
-    # Akt o wysokiej randze (85/100) na etapie uchwalenia, a wzmianek tylko 1 -> anomalia
+    """Akt o wysokiej randze z 1 wzmianką przy medianie 30 dla porównywalnych -> anomalia."""
+    req = SilenceRadarRequest(
+        relevance_score=85.0,
+        actual_media_mentions=1,
+        stage=LegislativeStage.SEJM_READING_3,
+        peer_media_mentions=[24, 28, 30, 33, 41, 52],
+    )
+    res = SilenceRadarService.evaluate(req)
+    assert res.is_anomaly is True
+    assert res.expected_mentions == 31.5  # mediana zbioru porównawczego
+    assert res.silence_gap == 30.5
+    assert "Anomalia" in res.explanation
+
+
+def test_silence_radar_needs_peer_baseline() -> None:
+    """Bez zbioru porównawczego nie ma z czym porównać — wynik musi być pusty, nie zgadnięty.
+
+    Poprzednia wersja liczyła oczekiwane pokrycie ze wzoru zamkniętego z dwiema stałymi
+    wpisanymi w kod, więc zwracała "anomalię" nie mając żadnej historii.
+    """
     req = SilenceRadarRequest(
         relevance_score=85.0,
         actual_media_mentions=1,
         stage=LegislativeStage.SEJM_READING_3,
     )
     res = SilenceRadarService.evaluate(req)
-    assert res.is_anomaly is True
-    assert res.silence_gap > 20.0
-    assert "Wykryto anomalię" in res.explanation
+    assert res.is_anomaly is False
+    assert res.expected_mentions is None
+    assert res.silence_gap is None
+    assert "Za mało aktów porównywalnych" in res.explanation
+
+
+def test_silence_radar_ignores_low_relevance_acts() -> None:
+    """Filtr istotności: bez niego lista tonie w drobiazgach (punkt 4 zadania F2)."""
+    req = SilenceRadarRequest(
+        relevance_score=20.0,
+        actual_media_mentions=0,
+        stage=LegislativeStage.SEJM_READING_3,
+        peer_media_mentions=[24, 28, 30, 33, 41, 52],
+    )
+    assert SilenceRadarService.evaluate(req).is_anomaly is False
 
 
 def test_legal_diff_with_rcl_consultation_correlation() -> None:
     version_a = (
-        "Art. 1. Ustawa o ochronie danych.\n"
-        "Art. 2. Kary finansowe wynoszą do 10 000 000 zł."
+        "Art. 1. Ustawa o ochronie danych.\nArt. 2. Kary finansowe wynoszą do 10 000 000 zł."
     )
     version_b = (
         "Art. 1. Ustawa o ochronie danych.\n"
@@ -84,7 +114,11 @@ def test_forecasting_service_probabilities() -> None:
     )
     res_gov = ForecastingService.forecast(req_gov)
     assert res_gov.enactment_probability >= 0.85
-    assert res_gov.confidence_interval[0] < res_gov.enactment_probability <= res_gov.confidence_interval[1]
+    assert (
+        res_gov.confidence_interval[0]
+        < res_gov.enactment_probability
+        <= res_gov.confidence_interval[1]
+    )
 
     # Obywatelski projekt bez poparcia koalicji -> niska szansa
     req_cit = ForecastRequest(

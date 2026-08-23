@@ -74,4 +74,4 @@ async def test_summarize_endpoint_with_provenance(async_client):
         assert len(bullet["provenance"]) > 0
         span = bullet["provenance"][0]
         assert span["source_document_id"] == "druk_890"
-        assert text[span["char_start"]:span["char_end"]] == span["exact_quote"]
+        assert text[span["char_start"] : span["char_end"]] == span["exact_quote"]

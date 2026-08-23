@@ -9,14 +9,14 @@ from barometr_ai.domain.models import BaseDTO
 
 # --- /v1/score (Scoring Istotności) ---
 class LegislativeStage(str, Enum):
-    GOV_WORK = "gov_work"                  # Wykaz prac RM
-    CONSULTATIONS = "consultations"        # Konsultacje publiczne
-    SEJM_READING_1 = "sejm_reading_1"      # I czytanie
-    SEJM_COMMITTEE = "sejm_committee"      # Prace w komisji
-    SEJM_READING_3 = "sejm_reading_3"      # III czytanie / uchwalenie
-    SENATE = "senate"                      # Senat
-    PRESIDENT_SIGN = "president_sign"      # Podpis Prezydenta
-    ENACTED = "enacted"                    # Opublikowane w Dz.U.
+    GOV_WORK = "gov_work"  # Wykaz prac RM
+    CONSULTATIONS = "consultations"  # Konsultacje publiczne
+    SEJM_READING_1 = "sejm_reading_1"  # I czytanie
+    SEJM_COMMITTEE = "sejm_committee"  # Prace w komisji
+    SEJM_READING_3 = "sejm_reading_3"  # III czytanie / uchwalenie
+    SENATE = "senate"  # Senat
+    PRESIDENT_SIGN = "president_sign"  # Podpis Prezydenta
+    ENACTED = "enacted"  # Opublikowane w Dz.U.
 
 
 class ScoreRequest(BaseDTO):
@@ -45,12 +45,25 @@ class SilenceRadarRequest(BaseDTO):
     relevance_score: float = Field(..., ge=0.0, le=100.0)
     actual_media_mentions: int = Field(..., ge=0)
     stage: LegislativeStage
+    peer_media_mentions: list[int] = Field(
+        default_factory=list,
+        description=(
+            "Liczby wzmianek dla aktów porównywalnych (ten sam etap, zbliżona istotność). "
+            "Dostarcza je backend — serwis AI jest bezstanowy i nie ma dostępu do historii."
+        ),
+    )
 
 
 class SilenceRadarResponse(BaseDTO):
-    expected_mentions: float
-    silence_gap: float
-    is_anomaly: bool = Field(..., description="Prawda, jeśli zmiana przeszła bez należnego rozgłosu")
+    expected_mentions: float | None = Field(
+        default=None, description="Mediana pokrycia aktów porównywalnych; None gdy brak podstawy"
+    )
+    silence_gap: float | None = Field(
+        default=None, description="Różnica wobec mediany; None gdy brak podstawy"
+    )
+    is_anomaly: bool = Field(
+        ..., description="Prawda, jeśli zmiana przeszła bez należnego rozgłosu"
+    )
     explanation: str
 
 
@@ -62,7 +75,15 @@ class LegalUnitDiff(BaseDTO):
     new_text: str = Field(default="")
     consultation_comment_id: str | None = Field(default=None)
     consultation_submitter: str | None = Field(default=None)
-    correlation_confidence: float | None = Field(default=None)
+    correlation_confidence: float | None = Field(
+        default=None,
+        ge=0.0,
+        le=1.0,
+        description="Policzona pewność powiązania; None gdy uwagi nie udało się przypisać",
+    )
+    correlation_method: str | None = Field(
+        default=None, description="article_ref_exact | lexical_overlap — jak powstało powiązanie"
+    )
 
 
 class LegalDiffRequest(BaseDTO):

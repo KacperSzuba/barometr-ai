@@ -6,17 +6,26 @@ on:
   pull_request:
     branches: [ main ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test-and-lint:
+  quality:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Dolna granica z requires-python jest realnie testowana, a nie tylko deklarowana.
+        python-version: ["3.11", "3.13"]
 
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Python 3.13
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
       with:
-        python-version: "3.13"
+        python-version: ${{ matrix.python-version }}
         cache: 'pip'
 
     - name: Install dependencies
@@ -24,8 +33,43 @@ jobs:
         python -m pip install --upgrade pip
         pip install -e ".[dev]"
 
-    - name: Run Ruff Lint Check
+    - name: Ruff lint
       run: ruff check .
 
-    - name: Run Pytest Suite & Golden Set Evaluation
-      run: pytest -v --asyncio-mode=auto
+    - name: Ruff format check
+      run: ruff format --check .
+
+    - name: Mypy strict
+      run: mypy
+
+    - name: Cache modeli ONNX
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/huggingface
+        key: fastembed-${{ hashFiles('pyproject.toml') }}
+
+    - name: Pytest + golden set
+      run: pytest -q
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+        cache: 'pip'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e ".[dev]"
+    - name: Skan zależności
+      run: pip-audit --strict
+
+  image:
+    runs-on: ubuntu-latest
+    needs: [quality]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build obrazu produkcyjnego
+      run: docker build -t barometr-ai:${{ github.sha }} .

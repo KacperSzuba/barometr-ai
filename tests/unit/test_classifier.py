@@ -2,13 +2,11 @@
 
 import pytest
 
-from barometr_ai.adapters.fastembed_adapter import FastEmbedAdapter
 from barometr_ai.services.classifier_service import ClassifierService
 
 
 @pytest.fixture(scope="module")
-def classifier() -> ClassifierService:
-    embedder = FastEmbedAdapter()
+def classifier(embedder) -> ClassifierService:
     return ClassifierService(embedder=embedder)
 
 

@@ -1,20 +1,59 @@
-"""Rejestracja serwisów F2-F5 w dependencies.py."""
+"""Rejestracja serwisów i adapterów w kontenerze zależności FastAPI."""
 
+import logging
 from functools import lru_cache
+from typing import Annotated
 
+from fastapi import Depends, Header
+
+from barometr_ai.adapters.anthropic_llm_adapter import AnthropicLLMAdapter
 from barometr_ai.adapters.fastembed_adapter import FastEmbedAdapter
-from barometr_ai.core.config import get_settings
+from barometr_ai.adapters.heuristic_llm_adapter import HeuristicLLMAdapter
+from barometr_ai.core.config import Settings, get_settings
 from barometr_ai.ports.embedder import EmbedderPort
+from barometr_ai.ports.llm import LLMPort
 from barometr_ai.services.classifier_service import ClassifierService
 from barometr_ai.services.clustering_service import ClusteringService
 from barometr_ai.services.cost_tracker_service import CostTrackerService
 from barometr_ai.services.novelty_detector import NoveltyDetectorService
 from barometr_ai.services.summarizer_service import SummarizerService
 
+logger = logging.getLogger(__name__)
+
 
 @lru_cache(maxsize=1)
 def get_embedder() -> EmbedderPort:
-    return FastEmbedAdapter()
+    settings = get_settings()
+    return FastEmbedAdapter(
+        settings.embedding_model_name,
+        dimension=settings.embedding_dimension,
+        model_version=settings.embedding_model_version,
+        needs_e5_prefix=settings.embedding_needs_e5_prefix,
+        batch_size=settings.embedding_batch_size,
+    )
+
+
+@lru_cache(maxsize=1)
+def get_llm() -> LLMPort:
+    """Zwraca adapter modelu generatywnego albo — przy braku klucza — adapter zastępczy.
+
+    Degradacja jest jawna: `HeuristicLLMAdapter.is_generative` zwraca False, a ta wartość
+    trafia do odpowiedzi API. Konsument nigdy nie dostaje wyniku heurystyki podanego jako
+    wynik modelu. Przy `APP_ENV=production` brak klucza wywraca start serwisu (patrz Settings).
+    """
+    settings = get_settings()
+    if not settings.llm_enabled:
+        logger.warning(
+            "Brak ANTHROPIC_API_KEY — streszczenia degradują do adaptera heurystycznego "
+            "(is_generative=false w odpowiedziach API)."
+        )
+        return HeuristicLLMAdapter()
+    return AnthropicLLMAdapter(
+        api_key=settings.anthropic_api_key,
+        model=settings.llm_model,
+        timeout_seconds=settings.llm_timeout_seconds,
+        max_retries=settings.llm_max_retries,
+    )
 
 
 @lru_cache(maxsize=1)
@@ -43,4 +82,35 @@ def get_cost_tracker() -> CostTrackerService:
 
 @lru_cache(maxsize=1)
 def get_summarizer_service() -> SummarizerService:
-    return SummarizerService(cost_tracker=get_cost_tracker(), settings=get_settings())
+    return SummarizerService(
+        llm=get_llm(),
+        cost_tracker=get_cost_tracker(),
+        settings=get_settings(),
+    )
+
+
+async def get_client_id(
+    x_client_id: Annotated[str | None, Header(alias="X-Client-Id")] = None,
+) -> str:
+    """Identyfikator klienta do rozliczenia tokenów — wymóg dashboardu kosztu z zadania F1."""
+    return x_client_id or "unknown"
+
+
+SettingsDep = Annotated[Settings, Depends(get_settings)]
+EmbedderDep = Annotated[EmbedderPort, Depends(get_embedder)]
+SummarizerDep = Annotated[SummarizerService, Depends(get_summarizer_service)]
+ClientIdDep = Annotated[str, Depends(get_client_id)]
+
+
+def reset_dependency_caches() -> None:
+    """Czyści singletony — używane przez testy i przez rozgrzewkę przy starcie."""
+    for cached in (
+        get_embedder,
+        get_llm,
+        get_classifier_service,
+        get_clustering_service,
+        get_novelty_detector,
+        get_cost_tracker,
+        get_summarizer_service,
+    ):
+        cached.cache_clear()

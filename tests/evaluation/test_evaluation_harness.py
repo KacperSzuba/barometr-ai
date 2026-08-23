@@ -5,13 +5,11 @@ from pathlib import Path
 
 import pytest
 
-from barometr_ai.adapters.fastembed_adapter import FastEmbedAdapter
 from barometr_ai.services.classifier_service import ClassifierService
 
 
 @pytest.fixture(scope="module")
-def classifier() -> ClassifierService:
-    embedder = FastEmbedAdapter()
+def classifier(embedder) -> ClassifierService:
     return ClassifierService(embedder=embedder)
 
 
@@ -35,7 +33,9 @@ def test_golden_set_classification_benchmark(classifier: ClassifierService) -> N
     accuracy_topics = correct_topics / total
     accuracy_pkd = correct_pkd / total
 
-    print(f"\n[Golden Set] Celność tematów: {accuracy_topics*100:.1f}%, Celność PKD: {accuracy_pkd*100:.1f}%")
+    print(
+        f"\n[Golden Set] Celność tematów: {accuracy_topics * 100:.1f}%, Celność PKD: {accuracy_pkd * 100:.1f}%"
+    )
 
     # Wymóg jakościowy: celność nie może spaść poniżej 75%
     assert accuracy_topics >= 0.75
