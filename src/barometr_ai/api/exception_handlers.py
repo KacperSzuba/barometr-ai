@@ -11,8 +11,21 @@ from barometr_ai.core.exceptions import (
     ModelInferenceError,
     ProvenanceViolationError,
 )
+from barometr_ai.core.telemetry import current_trace_id
 
 logger = logging.getLogger(__name__)
+
+
+def _error_payload(code: str, exc: BarometrAIError) -> dict[str, object]:
+    payload: dict[str, object] = {
+        "error": code,
+        "message": str(exc),
+        "details": exc.details,
+    }
+    trace_id = current_trace_id()
+    if trace_id is not None:
+        payload["trace_id"] = trace_id
+    return payload
 
 
 def register_exception_handlers(app: FastAPI) -> None:
@@ -22,14 +35,14 @@ def register_exception_handlers(app: FastAPI) -> None:
     ) -> JSONResponse:
         return JSONResponse(
             status_code=422,
-            content={"error": "PROVENANCE_VIOLATION", "message": str(exc), "details": exc.details},
+            content=_error_payload("PROVENANCE_VIOLATION", exc),
         )
 
     @app.exception_handler(BudgetExceededError)
     async def budget_exceeded_handler(request: Request, exc: BudgetExceededError) -> JSONResponse:
         return JSONResponse(
             status_code=429,
-            content={"error": "BUDGET_EXCEEDED", "message": str(exc), "details": exc.details},
+            content=_error_payload("BUDGET_EXCEEDED", exc),
         )
 
     @app.exception_handler(ModelInferenceError)
@@ -38,16 +51,12 @@ def register_exception_handlers(app: FastAPI) -> None:
         logger.error("Awaria inferencji", extra={"path": request.url.path, "details": exc.details})
         return JSONResponse(
             status_code=502,
-            content={
-                "error": "MODEL_INFERENCE_FAILED",
-                "message": str(exc),
-                "details": exc.details,
-            },
+            content=_error_payload("MODEL_INFERENCE_FAILED", exc),
         )
 
     @app.exception_handler(BarometrAIError)
     async def barometr_error_handler(request: Request, exc: BarometrAIError) -> JSONResponse:
         return JSONResponse(
             status_code=400,
-            content={"error": "DOMAIN_ERROR", "message": str(exc), "details": exc.details},
+            content=_error_payload("DOMAIN_ERROR", exc),
         )

@@ -12,6 +12,12 @@ from barometr_ai.api.exception_handlers import register_exception_handlers
 from barometr_ai.api.v1.router import api_v1_router
 from barometr_ai.core.config import get_settings
 from barometr_ai.core.logging import setup_logging
+from barometr_ai.core.telemetry import (
+    TraceHeaderMiddleware,
+    flush_telemetry,
+    instrument_fastapi_app,
+    setup_telemetry,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +30,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     działa się w trakcie obsługi requestu, więc pierwszy użytkownik po deployu płacił
     kilkanaście sekund latencji, a healthcheck raportował gotowość zanim cokolwiek istniało.
     """
-    setup_logging()
     settings = get_settings()
     logger.info("Start serwisu", extra={"app": settings.app_name, "environment": settings.app_env})
 
@@ -38,11 +43,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     logger.info("Modele gotowe")
     yield
     logger.info("Zatrzymanie serwisu")
+    flush_telemetry()
 
 
 def create_app() -> FastAPI:
     """Application factory."""
     settings = get_settings()
+    setup_telemetry(settings)
+    setup_logging()
 
     app = FastAPI(
         title="Barometr AI Service",
@@ -58,6 +66,10 @@ def create_app() -> FastAPI:
 
     register_exception_handlers(app)
     app.include_router(api_v1_router)
+    instrument_fastapi_app(app)
+    # Ostatnie add_middleware = najbardziej zewnętrzna warstwa: X-Trace-Id → traceparent
+    # musi być widoczne dla instrumentacji HTTP.
+    app.add_middleware(TraceHeaderMiddleware)
 
     return app
 
