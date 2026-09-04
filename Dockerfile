@@ -1,5 +1,5 @@
 # Multi-stage production Dockerfile for Barometr AI
-FROM python:3.13-slim AS builder
+FROM python:3.14-slim AS builder
 
 # Binarka uv przypięta do konkretnego taga — Dependabot (ekosystem "docker") ją aktualizuje.
 COPY --from=ghcr.io/astral-sh/uv:0.12.9 /uv /bin/uv
@@ -20,7 +20,7 @@ COPY src/ ./src/
 # runtime nie potrzebuje katalogu src/.
 RUN uv sync --frozen --no-dev --no-editable
 
-FROM python:3.13-slim AS runner
+FROM python:3.14-slim AS runner
 
 WORKDIR /app
 COPY --from=builder /app/.venv /app/.venv
