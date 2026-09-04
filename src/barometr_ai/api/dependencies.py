@@ -12,10 +12,12 @@ from barometr_ai.adapters.heuristic_llm_adapter import HeuristicLLMAdapter
 from barometr_ai.core.config import Settings, get_settings
 from barometr_ai.ports.embedder import EmbedderPort
 from barometr_ai.ports.llm import LLMPort
+from barometr_ai.services.cascade_service import CascadeService
 from barometr_ai.services.classifier_service import ClassifierService
 from barometr_ai.services.clustering_service import ClusteringService
 from barometr_ai.services.cost_tracker_service import CostTrackerService
 from barometr_ai.services.novelty_detector import NoveltyDetectorService
+from barometr_ai.services.relevance_scorer import RelevanceScorerService
 from barometr_ai.services.summarizer_service import SummarizerService
 
 logger = logging.getLogger(__name__)
@@ -89,6 +91,17 @@ def get_summarizer_service() -> SummarizerService:
     )
 
 
+@lru_cache(maxsize=1)
+def get_cascade_service() -> CascadeService:
+    """Orkiestrator kaskady. Składa gotowe serwisy — sam nie tworzy żadnego adaptera."""
+    return CascadeService(
+        clustering=get_clustering_service(),
+        scorer=RelevanceScorerService(),
+        summarizer=get_summarizer_service(),
+        cost_tracker=get_cost_tracker(),
+    )
+
+
 async def get_client_id(
     x_client_id: Annotated[str | None, Header(alias="X-Client-Id")] = None,
 ) -> str:
@@ -112,5 +125,6 @@ def reset_dependency_caches() -> None:
         get_novelty_detector,
         get_cost_tracker,
         get_summarizer_service,
+        get_cascade_service,
     ):
         cached.cache_clear()

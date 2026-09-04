@@ -15,6 +15,7 @@ from barometr_ai.api.v1 import (
     local,
     ner,
     novelty,
+    pipeline,
     radar,
     scoring,
     summaries,
@@ -26,6 +27,7 @@ api_v1_router.include_router(health.router)
 api_v1_router.include_router(embeddings.router)
 api_v1_router.include_router(classification.router)
 api_v1_router.include_router(clustering.router)
+api_v1_router.include_router(pipeline.router)
 api_v1_router.include_router(summaries.router)
 api_v1_router.include_router(scoring.router)
 api_v1_router.include_router(radar.router)

@@ -66,6 +66,7 @@ brak klucza wywraca start serwisu.
 | `POST /v1/embed` | embeddingi, `input_type` = `passage` albo `query` |
 | `POST /v1/classify` | klasyfikacja tematyczna i mapowanie na PKD |
 | `POST /v1/cluster` | deduplikacja i klastrowanie strumienia |
+| `POST /v1/pipeline` | **kaskada L1→L2→L3** w jednym żądaniu: klastrowanie → istotność → top-N → streszczenia |
 | `POST /v1/summarize` | streszczenie z proweniencją |
 | `POST /v1/score` | scoring istotności, model liniowy z jawnymi wagami |
 | `POST /v1/diff` | diff aktów i korelacja z uwagami RCL |
@@ -83,6 +84,29 @@ Dwa ostatnie zwracają `501`, ponieważ poprzednie implementacje odpowiadały da
 Uzasadnienie i warunki włączenia: `AGENTS.md` §4.
 
 Nagłówek `X-Client-Id` służy do rozliczenia zużycia tokenów per klient.
+
+## Kaskada kosztowa
+
+`POST /v1/pipeline` przepuszcza wsad przez wszystkie trzy warstwy naraz. Model językowy
+widzi wyłącznie reprezentantów top-N klastrów, które przeszły próg istotności i zmieściły
+się w dziennym budżecie tokenów.
+
+Dwie rzeczy, których nie da się osiągnąć wołając warstwy osobno:
+
+- **Rozmiar klastra zasila scoring.** `sources_count` w modelu istotności to liczba
+  dokumentów w klastrze. Akt opisany przez dwanaście redakcji jest istotniejszy niż ten sam
+  akt opisany raz — i wie to dopiero warstwa L1.
+- **Budżet zawęża N, zamiast wywracać żądanie.** Bramka stoi *przed* wywołaniem modelu.
+  Klaster ponad budżet wraca z `skip_reason`, a to, co już policzone, jest poprawnym wynikiem.
+
+Żaden dokument nie znika po cichu: każdy klaster w odpowiedzi ma albo streszczenie, albo
+jawny powód pominięcia (`poza top-N`, `istotność poniżej progu`, `budżet wyczerpany`,
+`treść za krótka`). `cluster_id` jest wyprowadzony ze składu klastra, więc ten sam zestaw
+dokumentów daje ten sam identyfikator między wywołaniami i backend może po nim cache'ować —
+serwis pozostaje bezstanowy ([ADR 0001](docs/adr/0001-stateless-ai-service.md)).
+
+Warstwy near-duplicate (SimHash/MinHash) w L1 świadomie nie ma — pomiar i uzasadnienie
+w [ADR 0003](docs/adr/0003-brak-warstwy-near-duplicate.md).
 
 ## Jakość
 

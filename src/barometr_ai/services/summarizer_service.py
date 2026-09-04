@@ -74,7 +74,7 @@ class SummarizerService:
         attempt = 0
 
         for attempt in range(1, self._settings.llm_regeneration_attempts + 2):
-            self._cost_tracker.ensure_capacity(self._estimate_request_tokens(source_text))
+            self._cost_tracker.ensure_capacity(self.estimate_request_tokens(source_text))
 
             prompt = self._template.render(
                 document=document,
@@ -205,8 +205,11 @@ class SummarizerService:
         )
 
     @staticmethod
-    def _estimate_request_tokens(source_text: str) -> int:
+    def estimate_request_tokens(source_text: str) -> int:
         """Zgrubny szacunek wyłącznie do bramki budżetowej przed wywołaniem.
+
+        Publiczny, bo tej samej bramki używa orkiestrator kaskady, żeby zawęzić top-N
+        zanim wyśle cokolwiek do modelu.
 
         Rozliczenie opiera się na realnym `usage` z odpowiedzi dostawcy, nie na tej liczbie.
         Mnożnik 2,5 odzwierciedla gorszą tokenizację polszczyzny niż angielska reguła 1,3.

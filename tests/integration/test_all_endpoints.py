@@ -75,3 +75,54 @@ async def test_summarize_endpoint_with_provenance(async_client):
         span = bullet["provenance"][0]
         assert span["source_document_id"] == "druk_890"
         assert text[span["char_start"] : span["char_end"]] == span["exact_quote"]
+
+
+@pytest.mark.asyncio
+async def test_pipeline_endpoint(async_client):
+    """Kaskada w jednym żądaniu: cztery dokumenty wchodzą, model widzi jeden klaster."""
+    payload = {
+        "documents": [
+            {
+                "id": "doc_1",
+                "content": (
+                    "Sejm uchwalił nowe stawki podatku akcyzowego na paliwa silnikowe. "
+                    "Przepisy wejdą w życie z początkiem przyszłego kwartału."
+                ),
+                "stage": "enacted",
+                "pkd_overlap_count": 2,
+            },
+            {
+                "id": "doc_2",
+                "content": (
+                    "SEJM UCHWALIŁ NOWE STAWKI PODATKU AKCYZOWEGO NA PALIWA SILNIKOWE. "
+                    "PRZEPISY WEJDĄ W ŻYCIE Z POCZĄTKIEM PRZYSZŁEGO KWARTAŁU."
+                ),
+                "stage": "enacted",
+            },
+            {
+                "id": "doc_3",
+                "content": (
+                    "Ministerstwo Zdrowia ogłasza nową listę leków refundowanych. "
+                    "Wykaz obejmie terapie onkologiczne od przyszłego miesiąca."
+                ),
+                "stage": "gov_work",
+            },
+        ],
+        "top_n": 1,
+        "cluster_threshold": 0.95,
+    }
+    res = await async_client.post("/v1/pipeline", json=payload)
+    assert res.status_code == 200
+    data = res.json()
+
+    assert data["total_documents"] == 3
+    assert data["summarized_count"] == 1
+    assert len(data["summaries"]) == 1
+    # Każdy klaster niesie albo streszczenie, albo powód pominięcia.
+    assert all(c["selected_for_summary"] or c["skip_reason"] for c in data["clusters"])
+    # Wybrany został klaster o wyższej istotności (etap enacted + dwa źródła).
+    wybrany = next(c for c in data["clusters"] if c["selected_for_summary"])
+    assert wybrany["representative_document_id"] == "doc_1"
+    assert len(wybrany["member_document_ids"]) == 2
+    # Scoring musi być wytłumaczalny — „dlaczego to widzisz”.
+    assert wybrany["relevance"]["explanations"]
