@@ -22,49 +22,47 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
+    - name: Set up uv i Python ${{ matrix.python-version }}
+      uses: astral-sh/setup-uv@v6
       with:
+        enable-cache: true
         python-version: ${{ matrix.python-version }}
-        cache: 'pip'
 
+    # --frozen wywala się, gdy uv.lock rozjechał się z pyproject.toml — dzięki temu
+    # nieaktualny lock nie prześlizgnie się przez CI.
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -e ".[dev]"
+      run: uv sync --frozen --extra dev
 
     - name: Ruff lint
-      run: ruff check .
+      run: uv run ruff check .
 
     - name: Ruff format check
-      run: ruff format --check .
+      run: uv run ruff format --check .
 
     - name: Mypy strict
-      run: mypy
+      run: uv run mypy
 
     - name: Cache modeli ONNX
       uses: actions/cache@v4
       with:
         path: ~/.cache/huggingface
-        key: fastembed-${{ hashFiles('pyproject.toml') }}
+        key: fastembed-${{ hashFiles('uv.lock') }}
 
     - name: Pytest + golden set
-      run: pytest -q
+      run: uv run pytest -q
 
   security:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - uses: astral-sh/setup-uv@v6
       with:
+        enable-cache: true
         python-version: "3.13"
-        cache: 'pip'
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -e ".[dev]"
+      run: uv sync --frozen --extra dev
     - name: Skan zależności
-      run: pip-audit --strict
+      run: uv run pip-audit --strict
 
   image:
     runs-on: ubuntu-latest

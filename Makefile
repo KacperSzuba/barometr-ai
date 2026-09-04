@@ -1,8 +1,10 @@
-.PHONY: help install run test lint format typecheck check eval docker-build docker-run
+.PHONY: help install lock upgrade run test lint format typecheck check eval docker-build docker-run
 
 help:
 	@echo "Barometr AI - Dostępne komendy:"
-	@echo "  make install     Instaluje zależności w środowisku wirtualnym"
+	@echo "  make install     Instaluje zależności z uv.lock (dokładnie te wersje co CI)"
+	@echo "  make lock        Przelicza uv.lock po zmianie zależności w pyproject.toml"
+	@echo "  make upgrade     Podnosi wszystkie zależności w uv.lock do najnowszych"
 	@echo "  make run         Uruchamia serwer developerski FastAPI z auto-reloadem"
 	@echo "  make test        Uruchamia kompletny pakiet testów pytest"
 	@echo "  make lint        Sprawdza jakość kodu za pomocą Ruff"
@@ -12,30 +14,37 @@ help:
 	@echo "  make eval        Uruchamia testy ewaluacyjne na zbiorze referencyjnym (Golden Set)"
 	@echo "  make docker-build Buduje produkcyjny obraz Docker"
 
+# --frozen: instaluj dokładnie to, co w locku; nie rozwiązuj zależności od nowa.
 install:
-	pip install -e ".[dev]"
+	uv sync --frozen --extra dev
+
+lock:
+	uv lock
+
+upgrade:
+	uv lock --upgrade
 
 run:
-	uvicorn barometr_ai.main:app --reload --host 0.0.0.0 --port 8000
+	uv run uvicorn barometr_ai.main:app --reload --host 0.0.0.0 --port 8000
 
 test:
-	pytest -v
+	uv run pytest -v
 
 lint:
-	ruff check .
-	ruff format --check .
+	uv run ruff check .
+	uv run ruff format --check .
 
 format:
-	ruff format .
-	ruff check --fix .
+	uv run ruff format .
+	uv run ruff check --fix .
 
 typecheck:
-	mypy
+	uv run mypy
 
 check: lint typecheck test
 
 eval:
-	pytest tests/evaluation -v -s
+	uv run pytest tests/evaluation -v -s
 
 docker-build:
 	docker build -t barometr-ai:latest .

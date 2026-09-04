@@ -6,15 +6,23 @@ i streszczenia legislacyjne z bezwzględną proweniencją znakową.
 ## Wymagania
 
 - Python 3.11+ (obraz produkcyjny i CI: 3.13)
+- [uv](https://docs.astral.sh/uv/) — menedżer zależności; instalacja na Windows:
+  `powershell -c "irm https://astral.sh/uv/install.ps1 | iex"`
 - Klucz Claude API dla warstwy generatywnej (`ANTHROPIC_API_KEY`)
 
 ## Start
 
 ```bash
-make install
+uv sync --frozen --extra dev
 cp .env.example .env
-make run
+uv run uvicorn barometr_ai.main:app --reload
 ```
+
+Te same kroki opakowane w `make install` / `make run`, jeśli masz `make`.
+
+Wersje zależności są przypięte w `uv.lock` — lokalnie, w CI i w obrazie Docker
+instaluje się dokładnie to samo. Po zmianie zależności w `pyproject.toml` uruchom
+`uv lock`, a nowy `uv.lock` zacommituj razem ze zmianą.
 
 Serwis nasłuchuje na `:8000`, dokumentacja OpenAPI pod `/docs`.
 
