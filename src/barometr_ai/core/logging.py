@@ -6,7 +6,14 @@ import json
 import logging
 import sys
 from datetime import UTC, datetime
-from typing import Any, override
+from typing import Any
+
+if sys.version_info >= (3, 12):
+    from typing import override
+else:  # pragma: no cover - ścieżka wyłącznie dla Pythona 3.11
+    # typing.override to PEP 698, dostępne dopiero od 3.12; na 3.11 sam import
+    # `from typing import override` wywala ImportError przy starcie aplikacji.
+    from typing_extensions import override
 
 from barometr_ai.core.config import get_settings
 from barometr_ai.core.telemetry import current_span_id, current_trace_id

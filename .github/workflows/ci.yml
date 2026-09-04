@@ -61,8 +61,14 @@ jobs:
         python-version: "3.13"
     - name: Install dependencies
       run: uv sync --frozen --extra dev
+    # Audytujemy zawartość uv.lock, a nie środowiska. --no-emit-project pomija sam
+    # pakiet barometr-ai, którego nie ma na PyPI — przy --strict pip-audit traktuje
+    # taki nieodnaleziony pakiet jako błąd i wywala job.
+    - name: Eksport zablokowanych wersji do audytu
+      run: uv export --frozen --extra dev --no-emit-project --no-hashes --format requirements-txt -o requirements-audit.txt
+    # --no-deps: eksport jest w pełni przypięty, nie ma czego rozwiązywać.
     - name: Skan zależności
-      run: uv run pip-audit --strict
+      run: uv run pip-audit --strict --no-deps -r requirements-audit.txt
 
   image:
     runs-on: ubuntu-latest
