@@ -22,3 +22,7 @@ class ModelInferenceError(BarometrAIError):
 
 class BudgetExceededError(BarometrAIError):
     """Raised when token/cost budget for the client or day is exceeded."""
+
+
+class InvalidDocumentBatchError(BarometrAIError):
+    """Raised when a batch of documents cannot be processed as submitted."""

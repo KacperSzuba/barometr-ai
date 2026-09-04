@@ -65,16 +65,32 @@ class ClusterRequest(BaseDTO):
 
 
 class ClusterGroup(BaseDTO):
-    cluster_id: str
-    representative_document_id: str
+    cluster_id: str = Field(
+        ...,
+        description="Skrót ze składu klastra. Ten sam zestaw dokumentów daje ten sam "
+        "identyfikator między wywołaniami, więc nadaje się na klucz cache'u.",
+    )
+    representative_document_id: str = Field(
+        ..., description="Członek klastra położony najbliżej centroidu"
+    )
     member_document_ids: list[str]
-    cohesion_score: float
+    cohesion_score: float = Field(
+        ..., description="Średni kosinus członków klastra do jego centroidu"
+    )
 
 
 class ClusterResponse(BaseDTO):
     clusters: list[ClusterGroup]
     reduction_rate: float
     total_processed: int
+    exact_duplicates_removed: int = Field(
+        default=0,
+        description="Dokumenty scalone jako przedruk identyczny po zniesieniu wielkości "
+        "liter i interpunkcji. Serwis nie ma warstwy near-duplicate — uzasadnienie w ADR 0003.",
+    )
+    method: str = Field(
+        default="", description="Metoda i progi użyte do wyliczenia podziału na klastry"
+    )
 
 
 # --- /v1/summarize ---
