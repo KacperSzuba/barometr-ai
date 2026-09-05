@@ -127,10 +127,14 @@ make test-offline
 
 ### Golden Set i próg regresji
 
-`tests/evaluation/golden_set.json` liczy 70 przypadków, po dziesięć na każdy z siedmiu
-obszarów taksonomii — osobny test pilnuje, żeby żadna kategoria nie została bez pokrycia.
-Docelowe 200 z `AGENTS.md` §3.1 wymaga dokumentów z rejestrów publicznych; obecny zbiór jest
-zredagowany ręcznie i tę różnicę trzeba domknąć realnymi aktami.
+`tests/evaluation/golden_set.json` liczy 200 przypadków wymaganych przez `AGENTS.md` §3.1,
+po 28–29 na każdy z siedmiu obszarów taksonomii. Trzy testy strukturalne pilnują zbioru
+niezależnie od modelu: rozmiaru, pokrycia całej taksonomii (kategoria bez ani jednego
+przypadku wygląda, jakby była mierzona) i braku powtórzeń.
+
+Zbiór jest zredagowany ręcznie na wzór realnych tytułów i opisów legislacyjnych — nie
+pochodzi z rejestrów publicznych. Zanim posłuży za twardą bramkę jakości, warto podmienić
+przypadki na akty pobrane z RCL i Sejmu.
 
 Obok progu absolutnego (75%) działa próg regresji: spadek o więcej niż 3 pkt wobec ostatniego
 zapisanego pomiaru wywraca pipeline. Baseline pochodzi wyłącznie z faktycznego przebiegu:

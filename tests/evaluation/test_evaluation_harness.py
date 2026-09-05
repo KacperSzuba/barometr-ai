@@ -7,9 +7,6 @@ import pytest
 
 from barometr_ai.services.classifier_service import REGULATORY_TAXONOMY, ClassifierService
 
-#: Harness jakościowy z definicji potrzebuje realnego modelu.
-pytestmark = pytest.mark.model
-
 GOLDEN_SET_PATH = Path(__file__).parent / "golden_set.json"
 BASELINE_PATH = Path(__file__).parent / "baseline.json"
 
@@ -50,6 +47,15 @@ def golden_cases() -> list[dict[str, str]]:
     return cases
 
 
+#: Rozmiar zbioru referencyjnego wymagany przez AGENTS.md §3.1. Poniżej tej liczby próg
+#: regresji 3 pkt przestaje cokolwiek znaczyć: przy N=4 jeden błąd to skok o 25 pkt.
+MIN_GOLDEN_SET_SIZE = 200
+
+
+def test_golden_set_ma_wymagany_rozmiar(golden_cases: list[dict[str, str]]) -> None:
+    assert len(golden_cases) >= MIN_GOLDEN_SET_SIZE
+
+
 def test_golden_set_pokrywa_cala_taksonomie(golden_cases: list[dict[str, str]]) -> None:
     """Zbiór, w którym brakuje kategorii, nie mierzy jej regresji — a wygląda, jakby mierzył."""
     taxonomy = {area.code: set(area.pkd_codes) for area in REGULATORY_TAXONOMY}
@@ -62,6 +68,15 @@ def test_golden_set_pokrywa_cala_taksonomie(golden_cases: list[dict[str, str]]) 
         assert case["expected_pkd"] in taxonomy[case["expected_category"]], case["id"]
 
 
+def test_golden_set_nie_ma_powtorzen(golden_cases: list[dict[str, str]]) -> None:
+    """Powtórzony przypadek liczy się w metryce dwa razy i zawyża wagę jednego zdania."""
+    ids = [case["id"] for case in golden_cases]
+    titles = [case["title"] for case in golden_cases]
+    assert len(set(ids)) == len(ids)
+    assert len(set(titles)) == len(titles)
+
+
+@pytest.mark.model
 def test_golden_set_classification_benchmark(
     classifier: ClassifierService, golden_cases: list[dict[str, str]]
 ) -> None:
@@ -77,6 +92,7 @@ def test_golden_set_classification_benchmark(
     assert accuracy_pkd >= MIN_ACCURACY
 
 
+@pytest.mark.model
 def test_brak_regresji_wobec_zapisanego_pomiaru(
     classifier: ClassifierService, golden_cases: list[dict[str, str]]
 ) -> None:
