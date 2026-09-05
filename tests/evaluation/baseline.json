@@ -1,0 +1,8 @@
+{
+  "note": "Ostatni zmierzony wynik harnessu na golden_set.json. Wartości muszą pochodzić z faktycznego przebiegu (`make eval-baseline`), nigdy z wpisania ręcznego — patrz AGENTS.md §4. Dopóki są null, test regresji jawnie się pomija zamiast udawać pomiar.",
+  "measured_at": null,
+  "model_version": null,
+  "golden_set_size": null,
+  "topics_accuracy": null,
+  "pkd_accuracy": null
+}

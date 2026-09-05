@@ -11,6 +11,7 @@ async def test_health_endpoint(async_client):
 
 
 @pytest.mark.asyncio
+@pytest.mark.model
 async def test_embed_endpoint(async_client):
     payload = {"texts": ["Ustawa o podatku dochodowym", "Nowelizacja kodeksu pracy"]}
     res = await async_client.post("/v1/embed", json=payload)
@@ -22,6 +23,7 @@ async def test_embed_endpoint(async_client):
 
 
 @pytest.mark.asyncio
+@pytest.mark.model
 async def test_classify_endpoint(async_client):
     payload = {
         "title": "Projekt ustawy o planowaniu i zagospodarowaniu przestrzennym",
@@ -36,6 +38,7 @@ async def test_classify_endpoint(async_client):
 
 
 @pytest.mark.asyncio
+@pytest.mark.model
 async def test_cluster_endpoint(async_client):
     payload = {
         "documents": [
@@ -78,6 +81,7 @@ async def test_summarize_endpoint_with_provenance(async_client):
 
 
 @pytest.mark.asyncio
+@pytest.mark.model
 async def test_pipeline_endpoint(async_client):
     """Kaskada w jednym żądaniu: cztery dokumenty wchodzą, model widzi jeden klaster."""
     payload = {

@@ -55,6 +55,7 @@ def clustering_service(embedder) -> ClusteringService:
     return ClusteringService(embedder=embedder)
 
 
+@pytest.mark.model
 def test_cluster_deduplication(clustering_service: ClusteringService) -> None:
     docs = [
         DocumentItem(
@@ -82,6 +83,7 @@ def test_cluster_deduplication(clustering_service: ClusteringService) -> None:
     assert response.exact_duplicates_removed == 1  # d2 to przedruk d1 znak w znak
 
 
+@pytest.mark.model
 def test_wynik_nie_zalezy_od_kolejnosci_wejscia(clustering_service: ClusteringService) -> None:
     """Zachłanne przypisanie do pierwszego dokumentu dawało tu inny podział po odwróceniu
     listy. Aglomeracja łączy globalnie najpodobniejszą parę, więc podział jest ten sam."""

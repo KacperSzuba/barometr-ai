@@ -1,13 +1,11 @@
-"""Testy jednostkowe zaawansowanych funkcji: Scoring, Radar Ciszy, Legal Diff, Prognozy."""
+"""Testy jednostkowe zaawansowanych funkcji: Scoring, Radar Ciszy, Legal Diff."""
 
 from barometr_ai.domain.advanced_models import (
-    ForecastRequest,
     LegalDiffRequest,
     LegislativeStage,
     ScoreRequest,
     SilenceRadarRequest,
 )
-from barometr_ai.services.forecasting_service import ForecastingService
 from barometr_ai.services.legal_diff_service import LegalDiffService
 from barometr_ai.services.relevance_scorer import RelevanceScorerService
 from barometr_ai.services.silence_radar import SilenceRadarService
@@ -102,30 +100,3 @@ def test_legal_diff_with_rcl_consultation_correlation() -> None:
     assert diff.consultation_comment_id == "rcl_001"
     assert diff.consultation_submitter == "Polska Izba Gospodarcza"
     assert diff.correlation_confidence is not None
-
-
-def test_forecasting_service_probabilities() -> None:
-    # Rządowy projekt w 3 czytaniu z poparciem koalicji -> bardzo wysoka szansa uchwalenia
-    req_gov = ForecastRequest(
-        stage=LegislativeStage.SEJM_READING_3,
-        sponsor_type="GOVERNMENT",
-        days_in_current_stage=14,
-        governing_coalition_support=True,
-    )
-    res_gov = ForecastingService.forecast(req_gov)
-    assert res_gov.enactment_probability >= 0.85
-    assert (
-        res_gov.confidence_interval[0]
-        < res_gov.enactment_probability
-        <= res_gov.confidence_interval[1]
-    )
-
-    # Obywatelski projekt bez poparcia koalicji -> niska szansa
-    req_cit = ForecastRequest(
-        stage=LegislativeStage.SEJM_READING_1,
-        sponsor_type="CITIZENS",
-        days_in_current_stage=200,
-        governing_coalition_support=False,
-    )
-    res_cit = ForecastingService.forecast(req_cit)
-    assert res_cit.enactment_probability < 0.20

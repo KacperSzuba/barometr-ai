@@ -1,5 +1,7 @@
 """Endpointy dla sektora publicznego: sondaże i skrzynka obywatelska k>=50 (F5 Gov)."""
 
+import asyncio
+
 from fastapi import APIRouter
 
 from barometr_ai.domain.enterprise_models import (
@@ -19,7 +21,7 @@ router = APIRouter(tags=["Gov"])
     summary="Agreguj sondaże z korektą house effects",
 )
 async def aggregate_polls(request: PollsAggregateRequest) -> PollsAggregateResponse:
-    return GovAnalyticsService.aggregate_polls(request)
+    return await asyncio.to_thread(GovAnalyticsService.aggregate_polls, request)
 
 
 @router.post(
@@ -28,4 +30,4 @@ async def aggregate_polls(request: PollsAggregateRequest) -> PollsAggregateRespo
     summary="Klastruj skrzynkę obywatelską z progiem k>=50",
 )
 async def process_feedback(request: CitizenFeedbackRequest) -> CitizenFeedbackResponse:
-    return GovAnalyticsService.process_citizen_feedback(request)
+    return await asyncio.to_thread(GovAnalyticsService.process_citizen_feedback, request)

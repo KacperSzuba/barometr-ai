@@ -5,7 +5,7 @@ i streszczenia legislacyjne z bezwzględną proweniencją znakową.
 
 ## Wymagania
 
-- Python 3.11+ (obraz produkcyjny i CI: 3.13)
+- Python 3.11+ (obraz produkcyjny: 3.14; CI: 3.11, 3.13, 3.14)
 - [uv](https://docs.astral.sh/uv/) — menedżer zależności; instalacja na Windows:
   `powershell -c "irm https://astral.sh/uv/install.ps1 | iex"`
 - Klucz Claude API dla warstwy generatywnej (`ANTHROPIC_API_KEY`)
@@ -115,4 +115,38 @@ make check
 ```
 
 Uruchamia komplet bramek: `ruff check`, `ruff format --check`, `mypy --strict`, `pytest`.
-Te same cztery bramki wymusza CI na macierzy Python 3.11 i 3.13.
+Te same cztery bramki wymusza CI na macierzy Python 3.11, 3.13 i 3.14. W macierzy jest
+3.14, ponieważ na tej wersji stoi obraz produkcyjny — interpreter, na którym serwis
+faktycznie działa, nie może być jedynym nietestowanym.
+
+Testy wymagające pobrania modelu embeddingów niosą marker `model`. Zestaw bez sieci:
+
+```bash
+make test-offline
+```
+
+### Golden Set i próg regresji
+
+`tests/evaluation/golden_set.json` liczy 70 przypadków, po dziesięć na każdy z siedmiu
+obszarów taksonomii — osobny test pilnuje, żeby żadna kategoria nie została bez pokrycia.
+Docelowe 200 z `AGENTS.md` §3.1 wymaga dokumentów z rejestrów publicznych; obecny zbiór jest
+zredagowany ręcznie i tę różnicę trzeba domknąć realnymi aktami.
+
+Obok progu absolutnego (75%) działa próg regresji: spadek o więcej niż 3 pkt wobec ostatniego
+zapisanego pomiaru wywraca pipeline. Baseline pochodzi wyłącznie z faktycznego przebiegu:
+
+```bash
+make eval-baseline   # zapisuje tests/evaluation/baseline.json — zacommituj razem ze zmianą
+```
+
+Dopóki baseline jest pusty, test regresji jawnie się pomija, zamiast porównywać z liczbą,
+której nikt nie zmierzył.
+
+## Ograniczenia wdrożeniowe
+
+Licznik dziennego budżetu tokenów (`CostTrackerService`) żyje w pamięci procesu. Dlatego obraz
+startuje z `--workers 1`, a serwisu **nie da się dziś skalować poziomo bez utraty limitu**:
+przy N procesach realny budżet to N × `DAILY_TOKEN_BUDGET`, a restart zeruje stan. Skalowanie
+wymaga najpierw przeniesienia licznika do współdzielonego magazynu; kontrakt metod
+(`can_afford` / `ensure_capacity` / `record_usage`) jest już pod to przygotowany, więc
+podmiana implementacji nie rusza kaskady.

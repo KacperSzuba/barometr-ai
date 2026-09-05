@@ -1,5 +1,7 @@
 """Drzewiasty diff wersji prawnych i korelacja ze zgłoszeniami RCL (F3)."""
 
+import asyncio
+
 from fastapi import APIRouter
 
 from barometr_ai.domain.advanced_models import LegalDiffRequest, LegalDiffResponse
@@ -14,4 +16,5 @@ router = APIRouter(tags=["Diff"])
     summary="Porównaj wersje projektu i powiąż z uwagami RCL",
 )
 async def compare_versions(request: LegalDiffRequest) -> LegalDiffResponse:
-    return LegalDiffService.compare_and_correlate(request)
+    # Diff dwóch wersji ustawy rośnie z długością aktu — nie może blokować pętli zdarzeń.
+    return await asyncio.to_thread(LegalDiffService.compare_and_correlate, request)

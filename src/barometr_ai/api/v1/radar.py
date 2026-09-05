@@ -14,4 +14,6 @@ router = APIRouter(tags=["Radar"])
     summary="Oceń anomalię pokrycia medialnego (Radar Ciszy)",
 )
 async def evaluate_silence_radar(request: SilenceRadarRequest) -> SilenceRadarResponse:
+    # Bez `asyncio.to_thread` świadomie: cała praca to mediana po `peer_media_mentions`,
+    # czyli sortowanie krótkiej listy liczb dostarczonej w żądaniu.
     return SilenceRadarService.evaluate(request)

@@ -4,6 +4,7 @@ import pytest
 
 
 @pytest.mark.asyncio
+@pytest.mark.model
 async def test_embed_endpoint(async_client):
     payload = {"texts": ["Ustawa o cenach energii", "Projekt rozporzadzenia"]}
     response = await async_client.post("/v1/embed", json=payload)

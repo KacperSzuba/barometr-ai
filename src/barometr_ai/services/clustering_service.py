@@ -172,7 +172,10 @@ class ClusteringService:
                 "niego nieokreślone.",
                 details={"document_id": offending},
             )
-        return matrix / norms
+        # Adnotacja jest konieczna: pod stubami numpy dla Pythona 3.11 dzielenie ndarray przez
+        # ndarray ma typ Any, więc `return matrix / norms` wywala mypy --strict na [no-any-return].
+        normalized: NDArray[np.float64] = matrix / norms
+        return normalized
 
     @staticmethod
     def _agglomerate(vectors: NDArray[np.float64], threshold: float) -> list[list[int]]:

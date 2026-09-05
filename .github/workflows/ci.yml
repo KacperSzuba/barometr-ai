@@ -17,7 +17,9 @@ jobs:
       fail-fast: false
       matrix:
         # Dolna granica z requires-python jest realnie testowana, a nie tylko deklarowana.
-        python-version: ["3.11", "3.13"]
+        # 3.14 to wersja z obrazu produkcyjnego (Dockerfile) — musi być w macierzy, bo inaczej
+        # jedyny interpreter, na którym serwis faktycznie działa, jest jedynym nietestowanym.
+        python-version: ["3.11", "3.13", "3.14"]
 
     steps:
     - uses: actions/checkout@v7

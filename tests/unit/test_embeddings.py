@@ -1,5 +1,10 @@
 """Testy jakościowe dla lokalnego modelu embeddingów i podobieństwa kosinusowego."""
 
+import pytest
+
+#: Cały moduł mierzy zachowanie realnego adaptera ONNX.
+pytestmark = pytest.mark.model
+
 import numpy as np
 
 from barometr_ai.adapters.fastembed_adapter import FastEmbedAdapter

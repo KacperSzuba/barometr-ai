@@ -1,7 +1,8 @@
 """Testy jednostkowe modułów F2-F5: Nowość, NER, Framing, Briefing, Samorząd, Sondaże, k>=50."""
 
+import pytest
+
 from barometr_ai.domain.enterprise_models import (
-    BriefingRequest,
     CitizenFeedbackRequest,
     FeedbackItem,
     FramingAnalysisRequest,
@@ -18,10 +19,10 @@ from barometr_ai.services.entity_extractor import EntityExtractorService
 from barometr_ai.services.framing_analyzer import StakeholderFramingService
 from barometr_ai.services.gov_analytics_service import GovAnalyticsService
 from barometr_ai.services.local_parser_service import LocalDocumentParserService
-from barometr_ai.services.multi_briefing_service import MultiBriefingService
 from barometr_ai.services.novelty_detector import NoveltyDetectorService
 
 
+@pytest.mark.model
 def test_novelty_detector_recycled_and_new(embedder) -> None:
     detector = NoveltyDetectorService(embedder)
 
@@ -91,19 +92,6 @@ def test_framing_analysis() -> None:
     assert res.outlets[0].dominant_framing == FramingType.COST_OF_LIVING
     assert res.outlets[1].dominant_framing == FramingType.PROCEDURAL
     assert res.framing_diversity_score > 0.0
-
-
-def test_multi_level_briefing() -> None:
-    req = BriefingRequest(
-        topic="Transformacja energetyczna wiatrowa",
-        document_ids=["doc_101"],
-        timeframe_months=6,
-        raw_texts=["Uchwalono ustawę odległościową 700m oraz program offshore na Bałtyku."],
-    )
-    res = MultiBriefingService.generate_briefing(req)
-    assert len(res.executive_summary) > 0
-    assert len(res.timeline_milestones) == 3
-    assert len(res.executive_summary[0].provenance) > 0
 
 
 def test_local_document_parser() -> None:

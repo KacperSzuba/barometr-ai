@@ -2,6 +2,9 @@
 
 import pytest
 
+#: Klasyfikacja opiera się na podobieństwie semantycznym.
+pytestmark = pytest.mark.model
+
 from barometr_ai.services.classifier_service import ClassifierService
 
 

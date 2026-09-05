@@ -82,7 +82,7 @@ barometr-ai/
 │   ├── conftest.py                  # Wspólne fixtury pytest
 │   ├── unit/                        # Testy czysto jednostkowe (szybkie)
 │   ├── integration/                 # Testy endpointów FastAPI i pipeline'ów
-│   └── evaluation/                  # Golden set (200 dokumentów) i metryki jakości
+│   └── evaluation/                  # Golden set, baseline celności i metryki jakości
 ├── docs/
 │   ├── adr/                         # Architecture Decision Records (ADR)
 │   └── taxonomy/                    # Mapowania PKD i obszarów prawnych
