@@ -60,3 +60,24 @@ def register_exception_handlers(app: FastAPI) -> None:
             status_code=400,
             content=_error_payload("DOMAIN_ERROR", exc),
         )
+
+    @app.exception_handler(Exception)
+    async def unhandled_error_handler(request: Request, exc: Exception) -> JSONResponse:
+        """Ostatnia siatka: awaria spoza hierarchii domenowej nadal musi być do skorelowania.
+
+        Bez tego nieprzewidziany wyjątek wraca jako gołe 500 bez `trace_id`, więc zgłoszenie
+        od klienta nie ma jak trafić do konkretnego żądania w logach. Treść wyjątku nie idzie
+        do odpowiedzi — trafia do logu razem z identyfikatorem śladu.
+        """
+        logger.exception(
+            "Nieobsłużona awaria",
+            extra={"path": request.url.path, "exception_type": type(exc).__name__},
+        )
+        payload: dict[str, object] = {
+            "error": "INTERNAL_ERROR",
+            "message": "Wewnętrzna awaria serwisu.",
+        }
+        trace_id = current_trace_id()
+        if trace_id is not None:
+            payload["trace_id"] = trace_id
+        return JSONResponse(status_code=500, content=payload)

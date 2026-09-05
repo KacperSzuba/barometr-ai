@@ -62,7 +62,12 @@ class DocumentItem(BaseDTO):
 
 
 class ClusterRequest(BaseDTO):
-    documents: list[DocumentItem] = Field(..., min_length=2)
+    #: `min_length=1`, nie 2: klastrowanie jednego dokumentu jest dobrze określone (jeden
+    #: klaster, jeden członek, zerowa redukcja), a próg 2 wywracał kaskadę. `PipelineRequest`
+    #: przyjmuje jeden dokument, więc taki wsad docierał do `ClusterRequest` budowanego
+    #: wewnątrz serwisu i wywalał `ValidationError` poza kontraktem HTTP — czyli 500 zamiast
+    #: poprawnego wyniku dla żądania, które kontrakt kaskady wprost dopuszcza.
+    documents: list[DocumentItem] = Field(..., min_length=1)
     threshold: float = Field(default=0.82, ge=0.0, le=1.0)
 
 

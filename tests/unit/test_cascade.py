@@ -238,3 +238,31 @@ async def test_redukcja_wolumenu_liczona_wobec_wejscia(mock_embedder) -> None:
     assert response.total_documents == 4
     assert response.summarized_count == 1
     assert response.volume_reduction_rate == pytest.approx(0.75)
+
+
+async def test_kaskada_przyjmuje_pojedynczy_dokument(mock_embedder) -> None:
+    """Regresja: `PipelineRequest` dopuszcza jeden dokument, `ClusterRequest` wymagał dwóch.
+
+    Kaskada budowała `ClusterRequest` wewnątrz serwisu, więc wsad jednodokumentowy — wprost
+    dopuszczony przez kontrakt HTTP — wywalał `ValidationError` poza hierarchią domenową.
+    Nie łapał go żaden handler, więc klient dostawał 500 zamiast wyniku.
+    """
+    cascade, _ = build_cascade(mock_embedder)
+
+    response = await cascade.run(
+        PipelineRequest(
+            documents=[
+                PipelineDocument(
+                    id="jedyny", content=AKT_ENERGIA, stage=LegislativeStage.SEJM_READING_3
+                )
+            ]
+        )
+    )
+
+    assert response.total_documents == 1
+    assert response.clusters_formed == 1
+    assert len(response.clusters) == 1
+    assert response.clusters[0].member_document_ids == ["jedyny"]
+    assert response.summarized_count == 1
+    # Nic nie zostało odcięte, więc redukcja wolumenu jest zerowa, a nie ujemna.
+    assert response.volume_reduction_rate == 0.0

@@ -234,3 +234,17 @@ def test_identyfikator_klastra_stabilny_dla_tego_samego_skladu() -> None:
     )
 
     assert [g.cluster_id for g in pierwszy.clusters] == [g.cluster_id for g in drugi.clusters]
+
+
+def test_klastrowanie_jednego_dokumentu_jest_dobrze_okreslone() -> None:
+    """Jeden dokument to jeden klaster o jednym członku i zerowej redukcji."""
+    embedder = _StubEmbedder(vectors={DEPESZA: [1.0, 0.0, 0.0]})
+    response = ClusteringService(embedder=embedder).cluster_documents(
+        ClusterRequest(documents=[DocumentItem(id="d1", content=DEPESZA)])
+    )
+
+    assert len(response.clusters) == 1
+    assert response.clusters[0].member_document_ids == ["d1"]
+    assert response.total_processed == 1
+    assert response.reduction_rate == 0.0
+    assert response.exact_duplicates_removed == 0
