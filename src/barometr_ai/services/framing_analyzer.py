@@ -1,5 +1,7 @@
 """Porównanie framingu redakcji prasowych i analiza interesariuszy (F3)."""
 
+import re
+
 from barometr_ai.domain.enterprise_models import (
     FramingAnalysisRequest,
     FramingAnalysisResponse,
@@ -7,9 +9,15 @@ from barometr_ai.domain.enterprise_models import (
     MediaOutletFraming,
 )
 
-#: Sygnały leksykalne per rama. Materiał trafia do ramy z największą liczbą trafień;
-#: remis oznacza brak rozstrzygnięcia, nie pierwszą pasującą regułę.
-_FRAMING_SIGNALS: dict[FramingType, tuple[str, ...]] = {
+#: Sygnały leksykalne per rama: rdzenie dopasowywane **od początku wyrazu**. Materiał trafia
+#: do ramy z największą liczbą trafień; remis oznacza brak rozstrzygnięcia, nie pierwszą
+#: pasującą regułę.
+#:
+#: Rdzeń, nie pełna forma, bo polski odmienia przez przypadki („cen" łapie „ceny", „cenach").
+#: Granica wyrazu jest przy tym konieczna: dopasowanie dowolnym podciągiem wiązało „cen"
+#: z „ocena" i „scena", a „dane" z „oddane" i „sprzedane", więc materiał o ocenie skutków
+#: regulacji lądował w ramie kosztów życia, a tekst o sprzedanych mieszkaniach — w eksperckiej.
+_FRAMING_STEMS: dict[FramingType, tuple[str, ...]] = {
     FramingType.COST_OF_LIVING: (
         "cen",
         "podat",
@@ -55,6 +63,13 @@ _FRAMING_SIGNALS: dict[FramingType, tuple[str, ...]] = {
 }
 
 
+#: Rdzenie skompilowane raz, z kotwicą na początku wyrazu.
+_FRAMING_SIGNALS: dict[FramingType, tuple[re.Pattern[str], ...]] = {
+    framing: tuple(re.compile(r"\b" + re.escape(stem)) for stem in stems)
+    for framing, stems in _FRAMING_STEMS.items()
+}
+
+
 class StakeholderFramingService:
     """Bezstronna analiza ramy ujęcia tematu w mediach, bez rankingów i ocen redakcji.
 
@@ -72,7 +87,7 @@ class StakeholderFramingService:
         for article in request.articles:
             haystack = f"{article.get('title', '')} {article.get('content', '')}".lower()
             scores = {
-                framing: sum(1 for signal in signals if signal in haystack)
+                framing: sum(1 for signal in signals if signal.search(haystack))
                 for framing, signals in _FRAMING_SIGNALS.items()
             }
             best = max(scores.values())

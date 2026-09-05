@@ -1,6 +1,7 @@
 """Agregator sondaży i Skrzynka Obywatelska z twardym progiem prywatności k >= 50 (F5 Gov)."""
 
 import math
+import re
 from collections import defaultdict
 
 from barometr_ai.domain.enterprise_models import (
@@ -14,6 +15,25 @@ from barometr_ai.domain.enterprise_models import (
 
 #: Wartość krytyczna rozkładu normalnego dla dwustronnego przedziału 95%.
 Z_95 = 1.959964
+
+#: Reguły przypisania zgłoszenia do obszaru tematycznego: rdzenie dopasowywane **od początku
+#: wyrazu**, w kolejności sprawdzania. Granica wyrazu jest tu konieczna, a nie kosmetyczna —
+#: dopasowanie dowolnym podciągiem wiązało rdzeń „cen" z wyrazem „ocena", więc zgłoszenie
+#: „Ocena pracy szkoły jest niska" trafiało do obszaru kosztów energii.
+#:
+#: To dopasowanie słów kluczowych, nie klastrowanie semantyczne: obszar spoza tej listy
+#: wpada do kosza „Inne sprawy lokalne", a nie tworzy własnego tematu.
+_FEEDBACK_TOPIC_STEMS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("Koszty energii i ogrzewania", ("cen", "prąd", "prad", "ogrzewan", "rachun", "opał", "opal")),
+    ("Edukacja i opieka przedszkolna", ("szkoł", "szkol", "edukacj", "przedszkol", "żłob", "zlob")),
+)
+
+_FALLBACK_TOPIC = "Inne sprawy lokalne"
+
+_FEEDBACK_TOPIC_PATTERNS: tuple[tuple[str, tuple[re.Pattern[str], ...]], ...] = tuple(
+    (topic, tuple(re.compile(r"\b" + re.escape(stem)) for stem in stems))
+    for topic, stems in _FEEDBACK_TOPIC_STEMS
+)
 
 
 class GovAnalyticsService:
@@ -105,20 +125,22 @@ class GovAnalyticsService:
         return effects
 
     @staticmethod
+    def _topic_for(message: str) -> str:
+        """Przypisuje zgłoszenie do obszaru po pierwszej pasującej regule."""
+        lowered = message.lower()
+        for topic, patterns in _FEEDBACK_TOPIC_PATTERNS:
+            if any(pattern.search(lowered) for pattern in patterns):
+                return topic
+        return _FALLBACK_TOPIC
+
+    @staticmethod
     def process_citizen_feedback(request: CitizenFeedbackRequest) -> CitizenFeedbackResponse:
         """Klastruje opinie i wymusza próg k >= 50 (wymóg prawny AI Act i ochrony prywatności)."""
         min_k = request.min_k_threshold
 
         topic_counts: dict[str, list[str]] = defaultdict(list)
         for msg in request.messages:
-            lowered = msg.message.lower()
-            if "cen" in lowered or "prąd" in lowered:
-                topic = "Koszty energii i ogrzewania"
-            elif "szkoł" in lowered or "edukacj" in lowered:
-                topic = "Edukacja i opieka przedszkolna"
-            else:
-                topic = "Inne sprawy lokalne"
-            topic_counts[topic].append(msg.message)
+            topic_counts[GovAnalyticsService._topic_for(msg.message)].append(msg.message)
 
         clusters: list[FeedbackCluster] = []
         suppressed_count = 0

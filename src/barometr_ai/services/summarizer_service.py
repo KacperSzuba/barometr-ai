@@ -19,7 +19,7 @@ from barometr_ai.services.prompt_registry import (
     build_rejection_feedback,
 )
 from barometr_ai.services.provenance_service import ProvenanceService
-from barometr_ai.services.section_parser import parse_sections
+from barometr_ai.services.section_parser import markers_seen, parse_sections
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +32,11 @@ _SINGULAR_SECTIONS = (
 
 #: Zgrubny narzut promptu w tokenach, doliczany do bramki budżetowej przed wywołaniem.
 _PROMPT_OVERHEAD_TOKENS = 800
+
+#: Powód odrzucenia sekcji, której znacznika w ogóle nie było w odpowiedzi. Prompt wymaga
+#: wszystkich czterech znaczników i słowa BRAK_PODSTAWY pod pustymi, więc brak znacznika
+#: zawsze znaczy złamanie formatu.
+MISSING_MARKER_REASON = "brak znacznika sekcji w odpowiedzi modelu"
 
 
 class SummarizerService:
@@ -94,10 +99,18 @@ class SummarizerService:
             )
 
             sections = parse_sections(completion.segments)
+            seen = markers_seen(completion.segments)
             rejections = []
 
             for section in SummarySection:
                 if section in resolved:
+                    continue
+                if section not in seen:
+                    # Brak znacznika to awaria formatu, nie deklaracja braku podstawy.
+                    # Bez tego rozróżnienia odpowiedź bez żadnego znacznika dawała puste
+                    # streszczenie z zerem odrzuceń — sukces pozorny, dokładnie ta klasa
+                    # awarii, przed którą broni walidator proweniencji.
+                    rejections.append((section, MISSING_MARKER_REASON))
                     continue
                 statements, reason = self._ground_section(
                     sections[section], document_id=request.document_id, source_text=source_text

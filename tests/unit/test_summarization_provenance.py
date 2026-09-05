@@ -17,7 +17,7 @@ from barometr_ai.domain.llm import (
 from barometr_ai.domain.models import SummarizeRequest
 from barometr_ai.services.cost_tracker_service import CostTrackerService
 from barometr_ai.services.provenance_service import ProvenanceService
-from barometr_ai.services.section_parser import parse_sections
+from barometr_ai.services.section_parser import markers_seen, parse_sections
 from barometr_ai.services.summarizer_service import SummarizerService
 
 DOCUMENT = (
@@ -286,3 +286,65 @@ async def test_budget_gate_blocks_before_calling_provider(settings: Settings) ->
     with pytest.raises(BudgetExceededError):
         await service.summarize(_request())
     assert llm.prompts == []
+
+
+# --- awaria formatu odpowiedzi ---
+
+
+def test_parser_rozroznia_brak_znacznika_od_braku_podstawy() -> None:
+    """Sekcja pusta wygląda tak samo w obu przypadkach — rozstrzyga obecność znacznika."""
+    with_marker = [CitedSegment(text="[CO_SIE_ZMIENIA]\nBRAK_PODSTAWY")]
+    assert parse_sections(with_marker)[SummarySection.WHAT_CHANGED] == []
+    assert SummarySection.WHAT_CHANGED in markers_seen(with_marker)
+
+    without_marker = [CitedSegment(text="Jakas tresc bez zadnego znacznika.")]
+    assert parse_sections(without_marker)[SummarySection.WHAT_CHANGED] == []
+    assert markers_seen(without_marker) == set()
+
+
+async def test_odpowiedz_bez_znacznikow_nie_udaje_pustego_streszczenia(
+    settings: Settings,
+) -> None:
+    """Regresja: model gubiący znaczniki dawał HTTP 200 z zerem twierdzeń i zerem odrzuceń.
+
+    Sekcja bez znacznika była nieodróżnialna od sekcji, w której model świadomie wpisał
+    BRAK_PODSTAWY, więc awaria formatu przechodziła jako poprawna odpowiedź — bez
+    regeneracji i bez jakiegokolwiek śladu w wyniku.
+    """
+    llm = ScriptedLLM([[CitedSegment(text="Tresc odpowiedzi bez zadnego znacznika sekcji.")]])
+    service = SummarizerService(
+        llm=llm, cost_tracker=CostTrackerService(daily_budget=1_000_000), settings=settings
+    )
+
+    response = await service.summarize(
+        SummarizeRequest(document_id="doc_bez_znacznikow", content=DOCUMENT)
+    )
+
+    # Awaria formatu uruchamia regenerację, a nie ciche przyjęcie pustki.
+    assert len(llm.prompts) > 1
+    assert response.summary_bullets == []
+    # Po wyczerpaniu prób każda sekcja jest raportowana jako odrzucona.
+    assert len(response.rejected_sections) == len(SummarySection)
+
+
+async def test_sekcja_z_brak_podstawy_nie_jest_odrzucana(settings: Settings) -> None:
+    """Świadoma deklaracja braku podstawy to poprawna odpowiedź — bez regeneracji."""
+    answer = [
+        CitedSegment(text="[CO_SIE_ZMIENIA]\n"),
+        _cited("Uproszczona procedura przylaczenia.", "uproszczona procedure"),
+        CitedSegment(text="\n[KOGO_DOTYCZY]\nBRAK_PODSTAWY\n[CO_DALEJ]\nBRAK_PODSTAWY\n"),
+        CitedSegment(text="[USTALENIA_DODATKOWE]\nBRAK_PODSTAWY"),
+    ]
+    llm = ScriptedLLM([answer])
+    service = SummarizerService(
+        llm=llm, cost_tracker=CostTrackerService(daily_budget=1_000_000), settings=settings
+    )
+
+    response = await service.summarize(
+        SummarizeRequest(document_id="doc_brak_podstawy", content=DOCUMENT)
+    )
+
+    assert len(llm.prompts) == 1  # brak regeneracji
+    assert response.rejected_sections == []
+    assert response.what_changed is not None
+    assert response.who_is_affected is None

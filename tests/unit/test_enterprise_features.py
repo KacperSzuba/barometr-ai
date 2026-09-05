@@ -271,3 +271,53 @@ def test_novelty_publicystyka_bez_historii(mock_embedder) -> None:
 
     assert res.classification == NoveltyType.COMMENTARY
     assert res.highest_similarity == 0.0
+
+
+def test_skrzynka_nie_myli_oceny_z_cenami() -> None:
+    """Regresja: rdzeń „cen" dopasowywany podciągiem trafiał w „Ocena", więc zgłoszenie
+    o szkole lądowało w obszarze kosztów energii."""
+    messages = [
+        FeedbackItem(id=f"o_{i}", message="Ocena pracy szkoły jest niska.") for i in range(60)
+    ]
+    res = GovAnalyticsService.process_citizen_feedback(
+        CitizenFeedbackRequest(messages=messages, min_k_threshold=50)
+    )
+
+    assert [cluster.topic for cluster in res.clusters] == ["Edukacja i opieka przedszkolna"]
+
+
+def test_skrzynka_wrzuca_nieznany_temat_do_kosza() -> None:
+    messages = [
+        FeedbackItem(id=f"s_{i}", message="Scena kulturalna w gminie zamiera.") for i in range(60)
+    ]
+    res = GovAnalyticsService.process_citizen_feedback(
+        CitizenFeedbackRequest(messages=messages, min_k_threshold=50)
+    )
+
+    assert [cluster.topic for cluster in res.clusters] == ["Inne sprawy lokalne"]
+
+
+def test_framing_nie_liczy_trafien_wewnatrz_wyrazu() -> None:
+    """Regresja: „cen" trafiało w „ocena", a „dane" w „oddane"/„sprzedane", więc materiał
+    o ocenie skutków regulacji dostawał ramę kosztów życia."""
+    res = StakeholderFramingService.analyze_framing(
+        FramingAnalysisRequest(
+            cluster_id="cluster_regresja",
+            articles=[
+                {
+                    "outlet": "Serwis A",
+                    "title": "Ocena skutków nowej regulacji",
+                    "content": "Ocena wypadla pomyslnie.",
+                },
+                {
+                    "outlet": "Serwis B",
+                    "title": "Sprzedane mieszkania",
+                    "content": "Oddane lokale w nowym budynku.",
+                },
+            ],
+        )
+    )
+
+    assert [outlet.framing_signal_count for outlet in res.outlets] == [0, 0]
+    assert all(outlet.dominant_framing is None for outlet in res.outlets)
+    assert res.unclassified_count == 2

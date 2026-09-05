@@ -100,3 +100,39 @@ def test_legal_diff_with_rcl_consultation_correlation() -> None:
     assert diff.consultation_comment_id == "rcl_001"
     assert diff.consultation_submitter == "Polska Izba Gospodarcza"
     assert diff.correlation_confidence is not None
+
+
+def test_radar_nie_zglasza_anomalii_gdy_mediana_pokrycia_jest_zerowa() -> None:
+    """Regresja: `actual <= 0 * ANOMALY_RATIO` było prawdziwe dla każdego aktu bez wzmianek.
+
+    Jeżeli akty porównywalne też nie miały pokrycia, brak wzmianek jest normą, a nie ciszą
+    wokół tego jednego aktu — nie ma oczekiwania, wobec którego dałoby się mierzyć lukę.
+    """
+    res = SilenceRadarService.evaluate(
+        SilenceRadarRequest(
+            relevance_score=90.0,
+            actual_media_mentions=0,
+            stage=LegislativeStage.SEJM_READING_3,
+            peer_media_mentions=[0, 0, 0, 0, 0],
+        )
+    )
+
+    assert res.is_anomaly is False
+    assert res.expected_mentions == 0.0
+    # Luka bez oczekiwania jest niepoliczalna — `None`, a nie zero sugerujące brak różnicy.
+    assert res.silence_gap is None
+
+
+def test_radar_wykrywa_cisze_przy_realnym_pokryciu_porownywalnych() -> None:
+    res = SilenceRadarService.evaluate(
+        SilenceRadarRequest(
+            relevance_score=90.0,
+            actual_media_mentions=1,
+            stage=LegislativeStage.SEJM_READING_3,
+            peer_media_mentions=[10, 12, 14, 20, 30],
+        )
+    )
+
+    assert res.is_anomaly is True
+    assert res.expected_mentions == 14.0
+    assert res.silence_gap == 13.0

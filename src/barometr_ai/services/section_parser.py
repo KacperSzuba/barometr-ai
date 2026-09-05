@@ -51,6 +51,16 @@ def _append_run(
     sections[section].append(CitedSegment(text=stripped, citations=source.citations))
 
 
-def is_declared_empty(segments: list[CitedSegment]) -> bool:
-    """True, gdy model jawnie zadeklarował brak podstawy dla sekcji."""
-    return not segments
+def markers_seen(segments: list[CitedSegment]) -> set[SummarySection]:
+    """Zwraca sekcje, których znacznik faktycznie wystąpił w odpowiedzi modelu.
+
+    Sam podział na sekcje tego nie rozstrzyga: sekcja pusta wygląda identycznie, gdy model
+    świadomie wpisał w nią BRAK_PODSTAWY i gdy w ogóle nie wypisał jej znacznika. Pierwsze
+    jest poprawną odpowiedzią, drugie — awarią formatu, po której nie wolno oddać pustego
+    streszczenia jako wyniku.
+    """
+    seen: set[SummarySection] = set()
+    for segment in segments:
+        for match in _MARKER_PATTERN.finditer(segment.text):
+            seen.add(SECTION_MARKERS[match.group(0)])
+    return seen
