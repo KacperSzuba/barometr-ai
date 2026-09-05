@@ -3,6 +3,7 @@
 import logging
 
 from barometr_ai.core.config import Settings
+from barometr_ai.core.telemetry import record_tokens
 from barometr_ai.domain.llm import (
     SECTION_LABELS,
     CitedSegment,
@@ -96,6 +97,15 @@ class SummarizerService:
             # a kolejne wywołanie zablokuje `ensure_capacity`.
             self._cost_tracker.record_usage(
                 client_id=client_id, tokens=completion.total_tokens, enforce=False
+            )
+            # Licznik budżetu pilnuje limitu, metryka zasila rozliczenie per klient. To dwie
+            # różne rzeczy: pierwsza żyje dobę i zeruje się o północy, druga jest szeregiem
+            # czasowym w collectorze. Bez tego wywołania metryka nigdy nie powstawała, mimo
+            # że `X-Client-Id` był przyjmowany i przekazywany aż tutaj.
+            record_tokens(
+                client_id=client_id,
+                tokens=completion.total_tokens,
+                model_version=completion.model_version,
             )
 
             sections = parse_sections(completion.segments)

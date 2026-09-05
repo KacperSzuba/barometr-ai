@@ -77,13 +77,18 @@ brak klucza wywraca start serwisu.
 | `POST /v1/local/parse` | parser dokumentów BIP |
 | `POST /v1/gov/polls` | agregacja sondaży |
 | `POST /v1/gov/feedback` | skrzynka obywatelska, próg k ≥ 50 |
+| `GET /v1/usage` | zużycie tokenów klienta i stan dziennego budżetu |
 | `POST /v1/briefing` | **501** — niezaimplementowane |
 | `POST /v1/forecast` | **501** — niezaimplementowane |
 
 Dwa ostatnie zwracają `501`, ponieważ poprzednie implementacje odpowiadały danymi zmyślonymi.
 Uzasadnienie i warunki włączenia: `AGENTS.md` §4.
 
-Nagłówek `X-Client-Id` służy do rozliczenia zużycia tokenów per klient.
+Nagłówek `X-Client-Id` służy do rozliczenia zużycia tokenów per klient. Zużycie trafia
+w dwa miejsca naraz: do licznika budżetu, który pilnuje dziennego limitu i zeruje się
+o północy UTC, oraz do metryki OpenTelemetry `barometr.ai.tokens` z etykietami `client_id`
+i `model_version`, która jest szeregiem czasowym rozliczenia. `GET /v1/usage` czyta ten
+pierwszy i podaje w `budget_scope`, czy liczby obejmują całe wdrożenie, czy jeden proces.
 
 ## Kaskada kosztowa
 

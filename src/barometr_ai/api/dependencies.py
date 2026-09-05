@@ -134,6 +134,7 @@ async def get_client_id(
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 EmbedderDep = Annotated[EmbedderPort, Depends(get_embedder)]
 SummarizerDep = Annotated[SummarizerService, Depends(get_summarizer_service)]
+CostTrackerDep = Annotated[CostTrackerService, Depends(get_cost_tracker)]
 ClientIdDep = Annotated[str, Depends(get_client_id)]
 
 

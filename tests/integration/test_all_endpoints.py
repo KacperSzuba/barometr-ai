@@ -130,3 +130,23 @@ async def test_pipeline_endpoint(async_client):
     assert len(wybrany["member_document_ids"]) == 2
     # Scoring musi być wytłumaczalny — „dlaczego to widzisz”.
     assert wybrany["relevance"]["explanations"]
+
+
+async def test_usage_endpoint_rozlicza_klienta_z_naglowka(async_client):
+    """Regresja: `X-Client-Id` był przyjmowany i doliczany, ale nie miał jak wyjść na zewnątrz."""
+    res = await async_client.get("/v1/usage", headers={"X-Client-Id": "klient_testowy"})
+
+    assert res.status_code == 200
+    body = res.json()
+    assert body["client_id"] == "klient_testowy"
+    assert body["client_tokens_today"] >= 0
+    assert body["daily_budget"] >= 1
+    # Odbiorca musi wiedzieć, czy liczba obejmuje całe wdrożenie, czy jeden proces.
+    assert body["budget_scope"] in {"process", "shared"}
+
+
+async def test_usage_endpoint_bez_naglowka_uzywa_kubla_unknown(async_client):
+    res = await async_client.get("/v1/usage")
+
+    assert res.status_code == 200
+    assert res.json()["client_id"] == "unknown"

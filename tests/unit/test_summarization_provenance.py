@@ -348,3 +348,34 @@ async def test_sekcja_z_brak_podstawy_nie_jest_odrzucana(settings: Settings) -> 
     assert response.rejected_sections == []
     assert response.what_changed is not None
     assert response.who_is_affected is None
+
+
+async def test_zuzycie_tokenow_trafia_do_metryki_per_klient(
+    settings: Settings, monkeypatch
+) -> None:
+    """Regresja: `record_tokens` istniało, ale nikt go nie wołał — metryka nigdy nie powstawała.
+
+    Licznik budżetu i metryka to dwie różne rzeczy: pierwsza zeruje się o północy i pilnuje
+    limitu, druga jest szeregiem czasowym rozliczenia. Dotąd działała tylko pierwsza.
+    """
+    recorded: list[dict[str, object]] = []
+
+    monkeypatch.setattr(
+        "barometr_ai.services.summarizer_service.record_tokens",
+        lambda **kwargs: recorded.append(kwargs),
+    )
+
+    llm = ScriptedLLM([_full_answer()])
+    service = SummarizerService(
+        llm=llm, cost_tracker=CostTrackerService(daily_budget=1_000_000), settings=settings
+    )
+
+    await service.summarize(
+        SummarizeRequest(document_id="doc_metryka", content=DOCUMENT), client_id="klient_7"
+    )
+
+    assert len(recorded) == 1
+    assert recorded[0]["client_id"] == "klient_7"
+    assert recorded[0]["tokens"] == 120  # prompt_tokens + completion_tokens ze ScriptedLLM
+    # Metryka opisuje model, który faktycznie wykonał inferencję (AGENTS.md §4).
+    assert recorded[0]["model_version"] == llm.model_version
