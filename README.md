@@ -70,8 +70,8 @@ brak klucza wywraca start serwisu.
 | `POST /v1/summarize` | streszczenie z proweniencją |
 | `POST /v1/score` | scoring istotności, model liniowy z jawnymi wagami |
 | `POST /v1/diff` | diff aktów i korelacja z uwagami RCL |
-| `POST /v1/novelty` | nowość vs recykling |
-| `POST /v1/ner` | ekstrakcja encji |
+| `POST /v1/novelty` | nowość vs recykling vs publicystyka |
+| `POST /v1/ner` | ekstrakcja encji i relacji z proweniencją |
 | `POST /v1/radar` | radar ciszy, wymaga `peer_media_mentions` |
 | `POST /v1/framing` | rama medialna |
 | `POST /v1/local/parse` | parser dokumentów BIP |
@@ -107,6 +107,22 @@ serwis pozostaje bezstanowy ([ADR 0001](docs/adr/0001-stateless-ai-service.md)).
 
 Warstwy near-duplicate (SimHash/MinHash) w L1 świadomie nie ma — pomiar i uzasadnienie
 w [ADR 0003](docs/adr/0003-brak-warstwy-near-duplicate.md).
+
+## Relacje i publicystyka
+
+Relacje z `/v1/ner` powstają wyłącznie tam, gdzie jedno zdanie niesie jawną konstrukcję
+czasownikową („złożył … do", „nadzoruje", „sprzeciwił się") z przylegającymi do niej encjami.
+Każda krawędź niesie `char_start`, `char_end` i `trigger`, więc weryfikuje się ją wobec tekstu
+tak samo jak twierdzenie w streszczeniu. Zdanie złożone albo wtrącenie między encją
+a czasownikiem daje zero krawędzi — precyzja przed pokryciem.
+
+Klasa `commentary` z `/v1/novelty` nie wynika z podobieństwa wektorowego, bo publicystyka nie
+jest poziomem nowości, tylko gatunkiem. Rozpoznają ją jawne zwroty opiniujące, wypisane
+w polu `method`. Recykling ma przed nią pierwszeństwo: duplikat jest ukrywany niezależnie od
+gatunku.
+
+Zakres, świadome luki i warunki właściwego rozwiązania:
+[ADR 0004](docs/adr/0004-relacje-i-publicystyka-z-jawnych-przeslanek.md).
 
 ## Jakość
 

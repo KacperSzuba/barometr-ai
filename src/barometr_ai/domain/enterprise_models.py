@@ -64,10 +64,31 @@ class ExtractedEntity(BaseDTO):
     role: str | None = None  # wnioskodawca, sprawozdawca, zgłaszający uwagę
 
 
+class RelationType(str, Enum):
+    """Relacje wyprowadzane z jawnej konstrukcji czasownikowej w jednym zdaniu."""
+
+    SUBMITTED = "submitted"  # złożył / skierował / wniósł do
+    AMENDED = "amended"  # zgłosił poprawkę do / znowelizował
+    REGULATES = "regulates"  # nadzoruje / sprawuje nadzór nad
+    OPPOSES = "opposes"  # sprzeciwił się / zgłosił sprzeciw wobec
+    NOTIFIED = "notified"  # powiadomił / poinformował
+
+
 class EntityRelation(BaseDTO):
+    """Relacja między dwiema encjami, zakotwiczona w konkretnym fragmencie tekstu.
+
+    Offsety są obowiązkowe: relacja bez wskazania miejsca, z którego wynika, jest
+    nieodróżnialna od zgadniętej — a to dokładnie ta awaria, przed którą broni architektura.
+    """
+
     source_entity: str
     target_entity: str
-    relation_type: str  # SUBMITTED, AMENDED, REGULATES, OPPOSES
+    relation_type: RelationType
+    char_start: int = Field(..., ge=0, description="Początek fragmentu uzasadniającego relację")
+    char_end: int = Field(..., ge=0, description="Koniec fragmentu (wyłącznie)")
+    trigger: str = Field(
+        ..., min_length=1, description="Konstrukcja czasownikowa, z której relacja wynika"
+    )
 
 
 class NERRequest(BaseDTO):

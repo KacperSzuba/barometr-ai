@@ -14,6 +14,7 @@ from barometr_ai.domain.enterprise_models import (
     NoveltyType,
     PollItem,
     PollsAggregateRequest,
+    RelationType,
 )
 from barometr_ai.services.entity_extractor import EntityExtractorService
 from barometr_ai.services.framing_analyzer import StakeholderFramingService
@@ -58,9 +59,13 @@ def test_ner_extraction() -> None:
     for entity in res.entities:
         assert text[entity.char_start : entity.char_end] == entity.name
 
-    # Relacja zgadnieta z kolejnosci encji byla zmyslona. Do czasu rozstrzygania
-    # tozsamosci i analizy zdania lista pozostaje pusta - patrz P1 w audycie.
-    assert res.relations == []
+    # Relacje pochodza wylacznie z jawnej konstrukcji czasownikowej i nios offsety fragmentu,
+    # z ktorego wynikaja. Kolejnosc encji na liscie nie tworzy juz krawedzi.
+    for relation in res.relations:
+        evidence = text[relation.char_start : relation.char_end]
+        assert evidence.startswith(relation.source_entity)
+        assert evidence.endswith(relation.target_entity)
+        assert relation.trigger in evidence
 
 
 def test_ner_matches_abbreviated_title() -> None:
@@ -140,3 +145,129 @@ def test_gov_polls_and_citizen_feedback_privacy() -> None:
     assert len(res_fb.clusters) == 1
     assert res_fb.clusters[0].count == 60
     assert res_fb.suppressed_count_below_k == 10  # 10 wiadomości zostało bezpiecznie wstrzymanych
+
+
+# --- Relacje NER: wyprowadzane z konstrukcji czasownikowej, nie z sąsiedztwa ---
+
+
+def test_ner_relacja_z_jawnej_konstrukcji_czasownikowej() -> None:
+    text = "Minister Adam Nowak powiadomił UOKiK."
+    res = EntityExtractorService.extract_entities(NERRequest(text=text))
+
+    assert len(res.relations) == 1
+    relation = res.relations[0]
+    assert relation.relation_type == RelationType.NOTIFIED
+    assert relation.source_entity == "Minister Adam Nowak"
+    assert relation.target_entity == "UOKiK"
+
+    # Relacja bez zakotwiczenia jest nieodróżnialna od zgadniętej — offsety muszą wskazywać
+    # fragment, z którego wynika, a `trigger` musi się w tym fragmencie faktycznie znajdować.
+    evidence = text[relation.char_start : relation.char_end]
+    assert evidence == "Minister Adam Nowak powiadomił UOKiK"
+    assert relation.trigger in evidence
+
+
+def test_ner_kierunek_relacji_wynika_z_szyku() -> None:
+    res = EntityExtractorService.extract_entities(
+        NERRequest(text="UOKiK nadzoruje KNF w zakresie rynku.")
+    )
+    assert [(r.source_entity, r.relation_type, r.target_entity) for r in res.relations] == [
+        ("UOKiK", RelationType.REGULATES, "KNF")
+    ]
+
+
+def test_ner_nie_laczy_encji_z_dwoch_zdan() -> None:
+    """Sąsiedztwo w tekście to nie relacja — to była właśnie odrzucona heurystyka."""
+    res = EntityExtractorService.extract_entities(
+        NERRequest(text="Sejm obradował do późna. Senat przyjął ustawę bez poprawek.")
+    )
+    assert len(res.entities) == 2
+    assert res.relations == []
+
+
+def test_ner_nie_zgaduje_podmiotu_w_zdaniu_wspolrzednym() -> None:
+    """W „X złożył do Y oraz powiadomił Z" powiadamiającym jest X, nie sąsiadujący Y.
+
+    Rozstrzygnięcie wymaga analizy składniowej, więc druga relacja nie powstaje — zamiast
+    powstać z błędnym podmiotem.
+    """
+    res = EntityExtractorService.extract_entities(
+        NERRequest(
+            text=(
+                "Minister Adam Nowak złożył wniosek do Sejm Rzeczypospolitej Polskiej "
+                "oraz powiadomił UOKiK."
+            )
+        )
+    )
+    assert [(r.source_entity, r.relation_type, r.target_entity) for r in res.relations] == [
+        ("Minister Adam Nowak", RelationType.SUBMITTED, "Sejm Rzeczypospolitej Polskiej")
+    ]
+
+
+def test_ner_nie_przekracza_granicy_zdania_skladowego() -> None:
+    """Encja za przecinkiem należy do następnego zdania składowego, nie jest celem poprawki."""
+    res = EntityExtractorService.extract_entities(
+        NERRequest(
+            text=(
+                "Poseł Jan Kowalski zgłosił poprawkę do projektu, "
+                "a Minister Anna Lis sprzeciwiła się KNF."
+            )
+        )
+    )
+    assert [(r.source_entity, r.relation_type, r.target_entity) for r in res.relations] == [
+        ("Minister Anna Lis", RelationType.OPPOSES, "KNF")
+    ]
+
+
+# --- Publicystyka: gatunek rozpoznawany ze zwrotów, nie z podobieństwa wektorowego ---
+
+
+def test_novelty_rozpoznaje_publicystyke(mock_embedder) -> None:
+    detector = NoveltyDetectorService(mock_embedder)
+    res = detector.evaluate_novelty(
+        NoveltyRequest(
+            new_text="Moim zdaniem ustawa o cenach energii jest źle napisana i nie pomoże nikomu.",
+            history_texts=["Sejm uchwalił ustawę o cenach energii elektrycznej."],
+        )
+    )
+
+    assert res.classification == NoveltyType.COMMENTARY
+    assert res.is_suppressed is False
+    # Decyzja musi być audytowalna: trafiony zwrot ma być widoczny w opisie metody.
+    assert "moim zdaniem" in res.method
+
+
+def test_novelty_recykling_ma_pierwszenstwo_przed_publicystyka(mock_embedder) -> None:
+    """Duplikat jest ukrywany niezależnie od gatunku — bezpiecznikiem jest powtórzenie."""
+    powtorzony = "Moim zdaniem ustawa o cenach energii jest chybiona."
+    detector = NoveltyDetectorService(mock_embedder)
+    res = detector.evaluate_novelty(NoveltyRequest(new_text=powtorzony, history_texts=[powtorzony]))
+
+    assert res.classification == NoveltyType.RECYCLED
+    assert res.is_suppressed is True
+
+
+def test_novelty_tekst_sprawozdawczy_nie_jest_publicystyka(mock_embedder) -> None:
+    detector = NoveltyDetectorService(mock_embedder)
+    res = detector.evaluate_novelty(
+        NoveltyRequest(
+            new_text="Sejm uchwalił dziś ustawę o cenach maksymalnych energii elektrycznej.",
+            history_texts=["Rada Ministrów przyjęła rozporządzenie o odpadach komunalnych."],
+        )
+    )
+
+    assert res.classification == NoveltyType.NEW_EVENT
+    assert "brak zwrotów opiniujących" in res.method
+
+
+def test_novelty_publicystyka_bez_historii(mock_embedder) -> None:
+    """Brak historii nie znaczy „nowe zdarzenie", jeśli tekst jest jawnie opinią."""
+    detector = NoveltyDetectorService(mock_embedder)
+    res = detector.evaluate_novelty(
+        NoveltyRequest(
+            new_text="Zdaniem autora projekt ustawy nie rozwiązuje problemu.", history_texts=[]
+        )
+    )
+
+    assert res.classification == NoveltyType.COMMENTARY
+    assert res.highest_similarity == 0.0
