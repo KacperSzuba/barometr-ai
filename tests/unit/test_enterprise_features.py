@@ -1,6 +1,7 @@
 """Testy jednostkowe modułów F2-F5: Nowość, NER, Framing, Briefing, Samorząd, Sondaże, k>=50."""
 
 import pytest
+from pydantic import ValidationError
 
 from barometr_ai.domain.enterprise_models import (
     CitizenFeedbackRequest,
@@ -321,3 +322,82 @@ def test_framing_nie_liczy_trafien_wewnatrz_wyrazu() -> None:
     assert [outlet.framing_signal_count for outlet in res.outlets] == [0, 0]
     assert all(outlet.dominant_framing is None for outlet in res.outlets)
     assert res.unclassified_count == 2
+
+
+# --- Sondaże: waga świeżości i kotwica zaniku ---
+
+
+def _poll(pollster: str, day: str, value: float, sample: int = 1000) -> PollItem:
+    return PollItem(pollster=pollster, sample_size=sample, date=day, results={"X": value})
+
+
+def test_half_life_days_wplywa_na_srednia() -> None:
+    """Regresja: parametr był w kontrakcie i nie był czytany przez nic.
+
+    Sondaż sprzed siedmiu miesięcy ważył dokładnie tyle co wczorajszy, niezależnie od
+    zadeklarowanego okresu połowicznego zaniku.
+    """
+    polls = [_poll("A", "2026-01-01", 30.0), _poll("B", "2026-08-01", 40.0)]
+
+    krotki = GovAnalyticsService.aggregate_polls(
+        PollsAggregateRequest(polls=polls, half_life_days=1)
+    ).pooled_average["X"]
+    dlugi = GovAnalyticsService.aggregate_polls(
+        PollsAggregateRequest(polls=polls, half_life_days=3650)
+    ).pooled_average["X"]
+
+    # Krótki okres połowiczny gasi stary sondaż, długi sprowadza wynik do średniej po próbie.
+    assert krotki > dlugi
+    assert krotki == pytest.approx(40.0, abs=0.1)
+    assert dlugi == pytest.approx(35.0, abs=0.2)
+
+
+def test_waga_polowieje_dokladnie_po_okresie_polowicznego_zaniku() -> None:
+    """Sondaż starszy o `half_life_days` waży połowę — sprawdzone na policzalnym wejściu."""
+    polls = [_poll("A", "2026-08-01", 0.0), _poll("B", "2026-08-11", 30.0)]
+
+    res = GovAnalyticsService.aggregate_polls(PollsAggregateRequest(polls=polls, half_life_days=10))
+
+    # Wagi 0,5 i 1,0 → (0*0,5 + 30*1,0) / 1,5 = 20,0
+    assert res.pooled_average["X"] == pytest.approx(20.0, abs=0.01)
+    assert "zanik wykładniczy świeżości" in res.methodology_note
+
+
+def test_wynik_nie_zalezy_od_daty_wywolania() -> None:
+    """Kotwicą jest najnowszy sondaż w zestawie, nie „dziś" — inaczej wynik zmieniałby się sam.
+
+    Serwis jest bezstanowy i backend cache'uje po żądaniu; zegar w wzorze wywracałby jedno
+    i drugie.
+    """
+    polls = [_poll("A", "2020-01-01", 30.0), _poll("B", "2020-01-15", 40.0)]
+    stare = GovAnalyticsService.aggregate_polls(PollsAggregateRequest(polls=polls))
+
+    przesuniete = [_poll("A", "2026-01-01", 30.0), _poll("B", "2026-01-15", 40.0)]
+    nowe = GovAnalyticsService.aggregate_polls(PollsAggregateRequest(polls=przesuniete))
+
+    # Ten sam odstęp między sondażami daje ten sam wynik, niezależnie od bezwzględnych dat.
+    assert stare.pooled_average == nowe.pooled_average
+
+
+def test_prog_k_ponizej_minimum_jest_odrzucany_na_kontrakcie() -> None:
+    """Regresja: próg poniżej 50 przechodził walidację żądania, a bezpiecznik domykał dopiero
+    walidator odpowiedzi — czyli błąd klienta wracał jako 500 zamiast czytelnego odrzucenia."""
+    with pytest.raises(ValidationError):
+        CitizenFeedbackRequest(
+            messages=[FeedbackItem(id="x", message="Pojedyncze zgloszenie.")],
+            min_k_threshold=1,
+        )
+
+
+def test_prog_k_wolno_podniesc() -> None:
+    """Klient może żądać ostrzejszej ochrony, nigdy słabszej."""
+    request = CitizenFeedbackRequest(
+        messages=[FeedbackItem(id="x", message="Zgloszenie.")], min_k_threshold=200
+    )
+    assert request.min_k_threshold == 200
+
+
+def test_niepoprawna_data_sondazu_jest_odrzucana() -> None:
+    """Data steruje wagą, więc zapis nie do sparsowania musi paść na granicy kontraktu."""
+    with pytest.raises(ValidationError):
+        PollItem(pollster="A", sample_size=1000, date="wczoraj", results={"X": 30.0})

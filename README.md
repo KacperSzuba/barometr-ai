@@ -75,7 +75,7 @@ brak klucza wywraca start serwisu.
 | `POST /v1/radar` | radar ciszy, wymaga `peer_media_mentions` |
 | `POST /v1/framing` | rama medialna |
 | `POST /v1/local/parse` | parser dokumentów BIP |
-| `POST /v1/gov/polls` | agregacja sondaży |
+| `POST /v1/gov/polls` | agregacja sondaży z wagą świeżości |
 | `POST /v1/gov/feedback` | skrzynka obywatelska, próg k ≥ 50 |
 | `GET /v1/usage` | zużycie tokenów klienta i stan dziennego budżetu |
 | `POST /v1/briefing` | **501** — niezaimplementowane |

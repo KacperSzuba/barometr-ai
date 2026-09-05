@@ -1,5 +1,6 @@
 """Modele DTO dla faz F2-F5 (NER, Nowość, Framing, Briefing, Samorząd, Gov)."""
 
+import datetime
 from enum import Enum
 
 from pydantic import Field, model_validator
@@ -190,15 +191,25 @@ class LocalParseResponse(BaseDTO):
 
 # --- F5: /v1/gov/polls ---
 class PollItem(BaseDTO):
-    pollster: str
-    sample_size: int
-    date: str
+    pollster: str = Field(..., min_length=1)
+    sample_size: int = Field(..., ge=1, description="Wielkość próby; waży sondaż w średniej")
+    #: `date`, nie `str`: data steruje wagą świeżości, więc zapis, którego nie da się
+    #: sparsować, musi wywrócić żądanie na granicy kontraktu, a nie w środku obliczeń.
+    #: Format na drucie pozostaje ISO 8601 („2026-08-01").
+    date: datetime.date
     results: dict[str, float]  # partia -> procent
 
 
 class PollsAggregateRequest(BaseDTO):
     polls: list[PollItem] = Field(..., min_length=2)
-    half_life_days: int = Field(default=14)
+    half_life_days: int = Field(
+        default=14,
+        ge=1,
+        description=(
+            "Okres połowicznego zaniku wagi sondażu. Sondaż starszy o `half_life_days` od "
+            "najnowszego w zestawie waży połowę tego, co najnowszy."
+        ),
+    )
 
 
 class PollsAggregateResponse(BaseDTO):
@@ -213,6 +224,12 @@ class PollsAggregateResponse(BaseDTO):
 
 
 # --- F5: /v1/gov/feedback ---
+#: Minimalna liczebność grupy, poniżej której zgłoszenia nie opuszczają bazy. Wartość jest
+#: wymogiem prywatności z zadania F5, nie parametrem strojenia: klient może próg podnieść,
+#: nigdy obniżyć. Ta sama stała wiąże żądanie i odpowiedź, żeby nie dało się ich rozjechać.
+MIN_K_ANONYMITY = 50
+
+
 class FeedbackItem(BaseDTO):
     id: str
     message: str
@@ -220,13 +237,20 @@ class FeedbackItem(BaseDTO):
 
 class CitizenFeedbackRequest(BaseDTO):
     messages: list[FeedbackItem]
-    min_k_threshold: int = Field(default=50)
+    #: Próg nie schodzi poniżej `MIN_K_ANONYMITY`. Bez tego ograniczenia żądanie z niższym
+    #: progiem przechodziło walidację, a bezpiecznik domykał dopiero walidator odpowiedzi —
+    #: czyli błąd klienta wracał jako 500 zamiast czytelnego odrzucenia.
+    min_k_threshold: int = Field(default=MIN_K_ANONYMITY, ge=MIN_K_ANONYMITY)
 
 
 class FeedbackCluster(BaseDTO):
     topic: str
     paraphrase_summary: str
-    count: int = Field(..., ge=50, description="Nigdy nie ujawniane poniżej progu k >= 50")
+    count: int = Field(
+        ...,
+        ge=MIN_K_ANONYMITY,
+        description=f"Nigdy nie ujawniane poniżej progu k >= {MIN_K_ANONYMITY}",
+    )
     sentiment: str | None = Field(
         default=None, description="None dopóki analiza sentymentu nie jest zaimplementowana"
     )

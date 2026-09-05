@@ -1,5 +1,6 @@
 """Agregator sondaży i Skrzynka Obywatelska z twardym progiem prywatności k >= 50 (F5 Gov)."""
 
+import datetime
 import math
 import re
 from collections import defaultdict
@@ -42,7 +43,13 @@ class GovAnalyticsService:
     @staticmethod
     def aggregate_polls(request: PollsAggregateRequest) -> PollsAggregateResponse:
         """Uśrednia sondaże z jawną metodologią i policzonym pasmem błędu."""
-        pooled = GovAnalyticsService._weighted_average(request.polls)
+        # Kotwicą zaniku jest najnowszy sondaż w zestawie, nie „dziś": serwis jest bezstanowy,
+        # a wynik ma być odtwarzalny. Zegar w wzorze sprawiłby, że to samo żądanie zwraca
+        # z czasem inne liczby, więc backend nie mógłby po nim cache'ować ani go odtworzyć.
+        anchor = max(poll.date for poll in request.polls)
+        pooled = GovAnalyticsService._weighted_average(
+            request.polls, anchor=anchor, half_life_days=request.half_life_days
+        )
         effective_sample = sum(poll.sample_size for poll in request.polls)
 
         # Pasmo błędu zależy od wielkości próby ORAZ od szacowanego udziału. Stała wartość
@@ -52,15 +59,19 @@ class GovAnalyticsService:
             for party, share in pooled.items()
         }
 
-        house_effects = GovAnalyticsService._house_effects(request.polls, pooled)
+        house_effects = GovAnalyticsService._house_effects(
+            request.polls, anchor=anchor, half_life_days=request.half_life_days
+        )
 
         return PollsAggregateResponse(
             pooled_average=pooled,
             confidence_error_margins=error_margins,
             house_effects=house_effects,
             methodology_note=(
-                f"Średnia ważona wielkością próby z {len(request.polls)} sondaży "
-                f"(łączna próba {effective_sample}). Pasmo błędu: przedział 95% dla frakcji, "
+                f"Średnia ważona z {len(request.polls)} sondaży (łączna próba "
+                f"{effective_sample}). Waga = wielkość próby × zanik wykładniczy świeżości: "
+                f"sondaż starszy o {request.half_life_days} dni od najnowszego w zestawie "
+                f"({anchor.isoformat()}) waży połowę. Pasmo błędu: przedział 95% dla frakcji, "
                 f"z = {Z_95:.2f}, liczone z łącznej próby i szacowanego udziału. "
                 "Efekt domu sondażowego liczony metodą leave-one-out — ośrodek porównywany "
                 "jest do średniej BEZ jego własnych sondaży, żeby nie zaniżać odchylenia. "
@@ -70,11 +81,28 @@ class GovAnalyticsService:
         )
 
     @staticmethod
-    def _weighted_average(polls: list[PollItem]) -> dict[str, float]:
+    def _poll_weight(poll: PollItem, *, anchor: datetime.date, half_life_days: int) -> float:
+        """Waga sondażu: wielkość próby przemnożona przez zanik wykładniczy świeżości.
+
+        Sondaż starszy o `half_life_days` od kotwicy waży połowę tego, co sondaż z kotwicy.
+        Zanik jest ciągły, więc nie ma progu, na którym waga skacze — a `half_life_days`
+        przestaje być parametrem, który nic nie robi.
+        """
+        age_days = (anchor - poll.date).days
+        # Adnotacja konieczna: `float ** float` ma pod mypy typ Any, a funkcja deklaruje float.
+        decay: float = 0.5 ** (age_days / half_life_days)
+        return float(poll.sample_size) * decay
+
+    @staticmethod
+    def _weighted_average(
+        polls: list[PollItem], *, anchor: datetime.date, half_life_days: int
+    ) -> dict[str, float]:
         totals: dict[str, float] = defaultdict(float)
         weights: dict[str, float] = defaultdict(float)
         for poll in polls:
-            weight = float(poll.sample_size)
+            weight = GovAnalyticsService._poll_weight(
+                poll, anchor=anchor, half_life_days=half_life_days
+            )
             for party, value in poll.results.items():
                 totals[party] += value * weight
                 weights[party] += weight
@@ -94,7 +122,7 @@ class GovAnalyticsService:
 
     @staticmethod
     def _house_effects(
-        polls: list[PollItem], pooled: dict[str, float]
+        polls: list[PollItem], *, anchor: datetime.date, half_life_days: int
     ) -> dict[str, dict[str, float]]:
         """Odchylenie ośrodka od średniej policzonej BEZ jego własnych sondaży.
 
@@ -110,9 +138,16 @@ class GovAnalyticsService:
                 # Jeden ośrodek w puli — nie ma do czego porównać. Brak wyniku jest
                 # uczciwszy niż zero sugerujące zerowy efekt.
                 continue
-            baseline = GovAnalyticsService._weighted_average(others)
+            # Kotwica jest wspólna dla wszystkich podzbiorów, także tych bez najnowszego
+            # sondażu: liczona osobno dla każdego przesuwałaby skalę wag i odchylenie
+            # mieszałoby efekt ośrodka z efektem innego punktu odniesienia w czasie.
+            baseline = GovAnalyticsService._weighted_average(
+                others, anchor=anchor, half_life_days=half_life_days
+            )
             own = GovAnalyticsService._weighted_average(
-                [poll for poll in polls if poll.pollster == pollster]
+                [poll for poll in polls if poll.pollster == pollster],
+                anchor=anchor,
+                half_life_days=half_life_days,
             )
             deviations = {
                 party: round(value - baseline[party], 2)
