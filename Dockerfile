@@ -48,8 +48,8 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=120s --retries=3 \
     CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/v1/ready', timeout=4).status==200 else 1)" || exit 1
 
-# --workers 1 jest wymuszone przez licznik budżetu tokenów: CostTrackerService trzyma stan
-# w pamięci procesu, więc przy N workerach realny dzienny limit to N × DAILY_TOKEN_BUDGET.
-# Skalowanie poziome (repliki albo workery) wymaga najpierw przeniesienia licznika do
-# współdzielonego magazynu — patrz docstring CostTrackerService.
+# --workers 1 odpowiada domyślnemu TOKEN_BUDGET_BACKEND=memory: licznik budżetu żyje wtedy
+# w pamięci procesu, więc N workerów dałoby limit N × DAILY_TOKEN_BUDGET. Żeby podnieść tę
+# liczbę, przestaw backend na `redis` (obraz trzeba wtedy zbudować z `--extra redis`) —
+# konfiguracja WORKERS>1 na liczniku w pamięci jest odrzucana przy starcie.
 CMD ["uvicorn", "barometr_ai.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

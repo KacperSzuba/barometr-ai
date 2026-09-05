@@ -164,9 +164,17 @@ której nikt nie zmierzył.
 
 ## Ograniczenia wdrożeniowe
 
-Licznik dziennego budżetu tokenów (`CostTrackerService`) żyje w pamięci procesu. Dlatego obraz
-startuje z `--workers 1`, a serwisu **nie da się dziś skalować poziomo bez utraty limitu**:
-przy N procesach realny budżet to N × `DAILY_TOKEN_BUDGET`, a restart zeruje stan. Skalowanie
-wymaga najpierw przeniesienia licznika do współdzielonego magazynu; kontrakt metod
-(`can_afford` / `ensure_capacity` / `record_usage`) jest już pod to przygotowany, więc
-podmiana implementacji nie rusza kaskady.
+Licznik dziennego budżetu tokenów leży za portem `TokenBudgetStorePort` i ma dwa magazyny.
+
+| `TOKEN_BUDGET_BACKEND` | Zasięg limitu | Kiedy |
+|---|---|---|
+| `memory` (domyślny) | jeden proces | dev i wdrożenie jednoprocesowe; restart zeruje licznik |
+| `redis` | wszystkie procesy i repliki | warunek skalowania poziomego; wymaga `uv sync --extra redis` i `REDIS_URL` |
+
+Przy `memory` obraz startuje z `--workers 1`, a konfiguracja `WORKERS>1` **jest odrzucana
+przy starcie**: N procesów liczyłoby osobno, dając limit N × `DAILY_TOKEN_BUDGET`. Cicha
+dwukrotność zadeklarowanego budżetu to dokładnie ta awaria, którą ta bramka ma łapać.
+
+Limit domyka się **po** doliczeniu, nie przed: `record_usage` dolicza atomowo, sprawdza wynik
+i w razie przekroczenia cofa zapis. Kolejność „sprawdź, potem dolicz" byłaby wyścigiem — dwa
+procesy odczytałyby ten sam stan sprzed zapisu i oba uznałyby, że budżet starcza.

@@ -54,11 +54,14 @@ barometr-ai/
 │       ├── ports/                   # Interfejsy (abstrakcje / Protocols)
 │       │   ├── __init__.py
 │       │   ├── embedder.py          # Interfejs generowania wektorów
+│       │   ├── token_budget.py      # Interfejs magazynu liczników budżetu tokenów
 │       │   ├── classifier.py        # Interfejs klasyfikacji
 │       │   └── summarizer.py        # Interfejs LLM z proweniencją
 │       ├── adapters/                # Konkretne implementacje modeli i zewnętrznych API
 │       │   ├── __init__.py
 │       │   ├── local_embedder.py    # Implementacja modelu MMLW / FastEmbed / ONNX
+│       │   ├── in_memory_budget_store.py  # Licznik budżetu w pamięci procesu (domyślny)
+│       │   ├── redis_budget_store.py      # Licznik współdzielony (extra `redis`)
 │       │   ├── llm_client.py        # Klient LLM (Gemini / OpenAI) z retry i budżetem
 │       │   └── speech_adapter.py    # Adapter faster-whisper i pyannote
 │       ├── services/                # Logika aplikacyjna i orkiestracja
