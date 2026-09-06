@@ -1,6 +1,7 @@
 """Rejestracja serwisów i adapterów w kontenerze zależności FastAPI."""
 
 import logging
+import secrets
 from functools import lru_cache
 from typing import Annotated
 
@@ -11,6 +12,7 @@ from barometr_ai.adapters.fastembed_adapter import FastEmbedAdapter
 from barometr_ai.adapters.heuristic_llm_adapter import HeuristicLLMAdapter
 from barometr_ai.adapters.in_memory_budget_store import InMemoryTokenBudgetStore
 from barometr_ai.core.config import Settings, get_settings
+from barometr_ai.core.exceptions import ServiceAuthenticationError
 from barometr_ai.ports.embedder import EmbedderPort
 from barometr_ai.ports.llm import LLMPort
 from barometr_ai.ports.token_budget import TokenBudgetStorePort
@@ -124,6 +126,27 @@ def get_cascade_service() -> CascadeService:
     )
 
 
+async def require_service_key(
+    x_api_key: Annotated[str | None, Header(alias="X-Api-Key")] = None,
+) -> None:
+    """Bramka dostępu do warstwy inferencyjnej — pojedynczy współdzielony sekret.
+
+    To nie jest model uprawnień i nie ma nim być: serwis jest bezstanowy, nie zna
+    użytkowników i nie podejmuje decyzji zależnych od tego, kto pyta. Jedyne pytanie brzmi,
+    czy dzwoniący to backend Barometru. Rozliczenie kosztu idzie osobnym nagłówkiem
+    `X-Client-Id`, który celowo nie jest poświadczeniem — jest etykietą.
+
+    Porównanie idzie przez `compare_digest`, bo zwykłe `==` na stringach kończy się na
+    pierwszym różniącym się bajcie i czas odpowiedzi zdradza, ile znaków klucza zgadło się
+    dotąd.
+    """
+    settings = get_settings()
+    if not settings.service_authentication_enabled:
+        return
+    if x_api_key is None or not secrets.compare_digest(x_api_key, settings.service_api_key):
+        raise ServiceAuthenticationError("Nieprawidłowy albo brakujący nagłówek X-Api-Key.")
+
+
 async def get_client_id(
     x_client_id: Annotated[str | None, Header(alias="X-Client-Id")] = None,
 ) -> str:
@@ -136,6 +159,7 @@ EmbedderDep = Annotated[EmbedderPort, Depends(get_embedder)]
 SummarizerDep = Annotated[SummarizerService, Depends(get_summarizer_service)]
 CostTrackerDep = Annotated[CostTrackerService, Depends(get_cost_tracker)]
 ClientIdDep = Annotated[str, Depends(get_client_id)]
+ServiceKeyDep = Depends(require_service_key)
 
 
 def reset_dependency_caches() -> None:

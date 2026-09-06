@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter
 
+from barometr_ai.api.dependencies import ServiceKeyDep
 from barometr_ai.api.v1 import (
     briefings,
     classification,
@@ -24,20 +25,29 @@ from barometr_ai.api.v1 import (
 
 api_v1_router = APIRouter(prefix="/v1")
 
+# Sondy zdrowia zostają otwarte: orkiestrator, który musi znać stan kontenera, nie ma jak
+# przedstawić sekretu, a jedyne, co stąd wychodzi, to gotowość modeli. Wszystko poniżej
+# kosztuje tokeny albo niesie treść żądania i przechodzi przez `require_service_key`.
 api_v1_router.include_router(health.router)
-api_v1_router.include_router(embeddings.router)
-api_v1_router.include_router(classification.router)
-api_v1_router.include_router(clustering.router)
-api_v1_router.include_router(pipeline.router)
-api_v1_router.include_router(summaries.router)
-api_v1_router.include_router(scoring.router)
-api_v1_router.include_router(radar.router)
-api_v1_router.include_router(diffs.router)
-api_v1_router.include_router(forecasts.router)
-api_v1_router.include_router(novelty.router)
-api_v1_router.include_router(ner.router)
-api_v1_router.include_router(framing.router)
-api_v1_router.include_router(briefings.router)
-api_v1_router.include_router(local.router)
-api_v1_router.include_router(gov.router)
-api_v1_router.include_router(usage.router)
+
+_inference_routers = (
+    embeddings.router,
+    classification.router,
+    clustering.router,
+    pipeline.router,
+    summaries.router,
+    scoring.router,
+    radar.router,
+    diffs.router,
+    forecasts.router,
+    novelty.router,
+    ner.router,
+    framing.router,
+    briefings.router,
+    local.router,
+    gov.router,
+    usage.router,
+)
+
+for _router in _inference_routers:
+    api_v1_router.include_router(_router, dependencies=[ServiceKeyDep])

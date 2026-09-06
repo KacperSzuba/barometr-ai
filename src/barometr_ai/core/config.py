@@ -33,6 +33,15 @@ class Settings(BaseSettings):
     debug: bool = Field(default=False)
     log_level: str = Field(default="INFO")
 
+    # --- Dostęp do serwisu ---
+    service_api_key: str = Field(
+        default="",
+        description=(
+            "Współdzielony sekret, którego backend musi użyć w nagłówku X-Api-Key. "
+            "Pusty = serwis otwarty, dopuszczalne wyłącznie lokalnie."
+        ),
+    )
+
     host: str = Field(default="0.0.0.0")
     port: int = Field(default=8000, ge=1, le=65535)
     workers: int = Field(default=1, ge=1)
@@ -91,6 +100,11 @@ class Settings(BaseSettings):
         return any(marker in self.embedding_model_name.lower() for marker in E5_MODEL_MARKERS)
 
     @property
+    def service_authentication_enabled(self) -> bool:
+        """True gdy serwis żąda klucza. Fałsz jest stanem dopuszczalnym tylko poza produkcją."""
+        return bool(self.service_api_key)
+
+    @property
     def llm_enabled(self) -> bool:
         """True gdy skonfigurowano dostawcę modelu generatywnego."""
         return bool(self.anthropic_api_key)
@@ -113,6 +127,22 @@ class Settings(BaseSettings):
                 f"WORKERS={self.workers} przy TOKEN_BUDGET_BACKEND=memory oznacza dzienny "
                 f"limit {self.workers} × DAILY_TOKEN_BUDGET, bo każdy proces liczy osobno. "
                 "Ustaw TOKEN_BUDGET_BACKEND=redis albo zejdź do WORKERS=1."
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _require_service_key_in_production(self) -> "Settings":
+        """Serwis nie ma własnego modelu użytkowników i nie zna pojęcia autoryzacji.
+
+        Każdy, kto dosięgnie portu, może wydawać pieniądze z dziennego budżetu tokenów i
+        czytać wszystko, co przechodzi przez inferencję. Jedyne, co go broni, to granica
+        sieci — a granica sieci jest założeniem, nie mechanizmem. Klucz jest drugim zamkiem
+        i przy produkcji nie jest opcjonalny.
+        """
+        if self.app_env == "production" and not self.service_api_key:
+            raise ValueError(
+                "SERVICE_API_KEY jest wymagany przy APP_ENV=production — bez niego każdy, "
+                "kto dosięgnie portu, wydaje dzienny budżet tokenów i czyta treść żądań."
             )
         return self
 

@@ -84,6 +84,17 @@ brak klucza wywraca start serwisu.
 Dwa ostatnie zwracają `501`, ponieważ poprzednie implementacje odpowiadały danymi zmyślonymi.
 Uzasadnienie i warunki włączenia: `AGENTS.md` §4.
 
+## Dostęp
+
+Serwis nie zna użytkowników i nie podejmuje decyzji zależnych od tego, kto pyta — jedyne
+pytanie brzmi, czy dzwoniący to backend Barometru. Odpowiada na nie `SERVICE_API_KEY`
+sprawdzany w nagłówku `X-Api-Key` na każdej trasie poza `/v1/health` i `/v1/ready`, które
+zostają otwarte dla orkiestratora. Pusty klucz zostawia serwis otwarty i jest dopuszczalny
+wyłącznie lokalnie; przy `APP_ENV=production` wywraca start.
+
+To jest drugi zamek, nie pierwszy. Pierwszym jest granica sieci: serwis nie ma CORS i nie
+jest przeznaczony do wystawienia publicznie — przeglądarka nigdy nie zna jego adresu.
+
 Nagłówek `X-Client-Id` służy do rozliczenia zużycia tokenów per klient. Zużycie trafia
 w dwa miejsca naraz: do licznika budżetu, który pilnuje dziennego limitu i zeruje się
 o północy UTC, oraz do metryki OpenTelemetry `barometr.ai.tokens` z etykietami `client_id`
