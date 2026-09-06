@@ -1,30 +1,1402 @@
 [
   {
-    "id": "eval_01",
-    "title": "Projekt ustawy o zmianie ustawy o podatku od towarów i usług",
-    "content": "Projekt wdraża obowiązek fakturowania elektronicznego KSeF dla wszystkich podatników VAT czynnych od 1 lipca 2026 r.",
-    "expected_category": "REG_TAX_FINANCE",
-    "expected_pkd": "69.20.Z"
-  },
-  {
-    "id": "eval_02",
-    "title": "Projekt ustawy o rozwoju morskich farm wiatrowych",
-    "content": "Ustawa określa system wsparcia dla inwestorów offshore na Morzu Bałtyckim oraz zasady przyłączania do sieci przesyłowej.",
-    "expected_category": "REG_ENERGY_OZE",
-    "expected_pkd": "35.11.Z"
-  },
-  {
-    "id": "eval_03",
+    "id": "eval_digital_01",
     "title": "Nowelizacja ustawy o ochronie danych i cyberbezpieczeństwie",
     "content": "Wdrożenie unijnej dyrektywy NIS2 nakłada nowe obowiązki raportowania incydentów na operatorów usług kluczowych.",
     "expected_category": "REG_DIGITAL_TECH",
     "expected_pkd": "62.01.Z"
   },
   {
-    "id": "eval_04",
+    "id": "eval_digital_02",
+    "title": "Projekt ustawy o krajowym systemie cyberbezpieczeństwa",
+    "content": "Rozszerzenie katalogu podmiotów kluczowych i ważnych oraz obowiązek zgłaszania incydentów do właściwego CSIRT.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "62.01.Z"
+  },
+  {
+    "id": "eval_digital_03",
+    "title": "Ustawa o zmianie zasad stosowania systemów sztucznej inteligencji",
+    "content": "Dostosowanie prawa krajowego do unijnego AI Act, w tym obowiązki dostawców systemów wysokiego ryzyka.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "62.01.Z"
+  },
+  {
+    "id": "eval_digital_04",
+    "title": "Nowelizacja ustawy o doręczeniach elektronicznych",
+    "content": "Przesunięcie terminu wdrożenia e-Doręczeń dla podmiotów publicznych oraz zasady prowadzenia adresów do doręczeń.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "63.11.Z"
+  },
+  {
+    "id": "eval_digital_05",
+    "title": "Projekt ustawy o ochronie danych osobowych w zatrudnieniu",
+    "content": "Doprecyzowanie zakresu danych przetwarzanych przez pracodawcę zgodnie z RODO oraz zasady monitoringu w miejscu pracy.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "62.09.Z"
+  },
+  {
+    "id": "eval_digital_06",
+    "title": "Ustawa o zmianie prawa komunikacji elektronicznej",
+    "content": "Nowe obowiązki przedsiębiorców telekomunikacyjnych wobec abonentów oraz zasady udostępniania infrastruktury sieciowej.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "63.11.Z"
+  },
+  {
+    "id": "eval_digital_07",
+    "title": "Projekt ustawy o usługach cyfrowych i odpowiedzialności platform",
+    "content": "Wdrożenie aktu o usługach cyfrowych DSA: procedury zgłaszania nielegalnych treści przez użytkowników platform internetowych.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "63.11.Z"
+  },
+  {
+    "id": "eval_digital_08",
+    "title": "Rozporządzenie w sprawie wymagań dla oprogramowania rejestrów publicznych",
+    "content": "Standardy interoperacyjności i bezpieczeństwa systemów teleinformatycznych używanych przez administrację.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "62.01.Z"
+  },
+  {
+    "id": "eval_digital_09",
+    "title": "Ustawa o zwalczaniu nadużyć w komunikacji elektronicznej",
+    "content": "Obowiązki operatorów w zakresie blokowania wiadomości SMS wyłudzających dane oraz fałszywych połączeń telefonicznych.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "62.02.Z"
+  },
+  {
+    "id": "eval_digital_10",
+    "title": "Projekt ustawy o certyfikacji cyberbezpieczeństwa produktów ICT",
+    "content": "Krajowy system oceny zgodności sprzętu i oprogramowania z wymaganiami bezpieczeństwa teleinformatycznego.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "62.02.Z"
+  },
+  {
+    "id": "eval_digital_11",
+    "title": "Projekt ustawy o portfelu tożsamości cyfrowej",
+    "content": "Wdrożenie eIDAS2: zasady wydawania i używania europejskiego portfela tożsamości cyfrowej przez obywateli.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "63.11.Z"
+  },
+  {
+    "id": "eval_digital_12",
+    "title": "Ustawa o ponownym wykorzystywaniu danych sektora publicznego",
+    "content": "Zasady udostępniania i ponownego wykorzystywania danych publicznych przez podmioty prywatne.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "63.11.Z"
+  },
+  {
+    "id": "eval_digital_13",
+    "title": "Nowelizacja zasad korzystania z chmury obliczeniowej przez administrację",
+    "content": "Wymagania bezpieczeństwa teleinformatycznego dla usług przetwarzania w chmurze w podmiotach publicznych.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "63.11.Z"
+  },
+  {
+    "id": "eval_digital_14",
+    "title": "Projekt ustawy o dostępie do danych z urządzeń połączonych",
+    "content": "Wdrożenie aktu w sprawie danych: prawa użytkowników do danych generowanych przez urządzenia IoT.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "62.09.Z"
+  },
+  {
+    "id": "eval_digital_15",
+    "title": "Ustawa o ochronie małoletnich w usługach internetowych",
+    "content": "Obowiązki dostawców usług cyfrowych w zakresie weryfikacji wieku i ograniczania dostępu do treści szkodliwych.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "63.11.Z"
+  },
+  {
+    "id": "eval_digital_16",
+    "title": "Nowelizacja zasad reklamy internetowej opartej na profilowaniu",
+    "content": "Ograniczenia w profilowaniu użytkowników na potrzeby reklamy behawioralnej w usługach cyfrowych.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "63.11.Z"
+  },
+  {
+    "id": "eval_digital_17",
+    "title": "Projekt ustawy o dostawcach wysokiego ryzyka w sieciach telekomunikacyjnych",
+    "content": "Procedura oceny dostawców sprzętu sieciowego 5G oraz obowiązek wycofania urządzeń wysokiego ryzyka.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "62.01.Z"
+  },
+  {
+    "id": "eval_digital_18",
+    "title": "Ustawa o cyfryzacji postępowań administracyjnych",
+    "content": "Elektroniczne prowadzenie akt sprawy oraz komunikacja urzędu z obywatelem w systemie teleinformatycznym.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "63.11.Z"
+  },
+  {
+    "id": "eval_digital_19",
+    "title": "Projekt ustawy o nadzorze nad systemami sztucznej inteligencji w administracji",
+    "content": "Wymogi przejrzystości i nadzoru człowieka nad decyzjami wspieranymi przez algorytmy w podmiotach publicznych.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "62.01.Z"
+  },
+  {
+    "id": "eval_digital_20",
+    "title": "Ustawa o oznaczaniu treści generowanych przez sztuczną inteligencję",
+    "content": "Obowiązek trwałego oznaczania materiałów syntetycznych oraz odpowiedzialność dostawców modeli generatywnych.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "62.01.Z"
+  },
+  {
+    "id": "eval_digital_21",
+    "title": "Nowelizacja zasad dostępności cyfrowej stron podmiotów publicznych",
+    "content": "Wymagania dostępności serwisów internetowych i aplikacji mobilnych administracji dla osób z niepełnosprawnościami.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "62.01.Z"
+  },
+  {
+    "id": "eval_digital_22",
+    "title": "Projekt ustawy o obowiązkach informacyjnych sklepów internetowych",
+    "content": "Zasady prezentowania cen, opinii i warunków zwrotu w handlu elektronicznym prowadzonym przez internet.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "63.11.Z"
+  },
+  {
+    "id": "eval_digital_23",
+    "title": "Ustawa o usługach zaufania i pieczęci elektronicznej",
+    "content": "Warunki świadczenia kwalifikowanych usług zaufania oraz skutki prawne pieczęci elektronicznej.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "62.09.Z"
+  },
+  {
+    "id": "eval_digital_24",
+    "title": "Nowelizacja zasad przetwarzania danych biometrycznych",
+    "content": "Dopuszczalny zakres przetwarzania danych biometrycznych zgodnie z RODO oraz obowiązki administratorów danych.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "62.09.Z"
+  },
+  {
+    "id": "eval_digital_25",
+    "title": "Projekt ustawy o transferze danych osobowych poza Europejski Obszar Gospodarczy",
+    "content": "Warunki przekazywania danych osobowych do państw trzecich oraz nadzór organu ochrony danych.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "62.09.Z"
+  },
+  {
+    "id": "eval_digital_26",
+    "title": "Ustawa o obowiązku zgłaszania naruszeń ochrony danych osobowych",
+    "content": "Terminy i zakres zawiadamiania organu nadzorczego oraz osób, których dane dotyczą, o incydencie.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "62.09.Z"
+  },
+  {
+    "id": "eval_digital_27",
+    "title": "Projekt ustawy o ochronie teleinformatycznej infrastruktury krytycznej",
+    "content": "Obowiązki operatorów infrastruktury krytycznej w zakresie zabezpieczenia systemów sterowania i sieci.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "62.02.Z"
+  },
+  {
+    "id": "eval_digital_28",
+    "title": "Ustawa o wykorzystaniu oprogramowania otwartoźródłowego w administracji",
+    "content": "Zasady nabywania i udostępniania oprogramowania przez podmioty publiczne oraz zarządzanie licencjami.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "62.01.Z"
+  },
+  {
+    "id": "eval_digital_29",
+    "title": "Nowelizacja zasad ochrony konsumenta w usługach cyfrowych",
+    "content": "Obowiązki dostawców treści i usług cyfrowych w zakresie zgodności z umową oraz aktualizacji oprogramowania.",
+    "expected_category": "REG_DIGITAL_TECH",
+    "expected_pkd": "62.01.Z"
+  },
+  {
+    "id": "eval_energy_01",
+    "title": "Projekt ustawy o rozwoju morskich farm wiatrowych",
+    "content": "Ustawa określa system wsparcia dla inwestorów offshore na Morzu Bałtyckim oraz zasady przyłączania do sieci przesyłowej.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.11.Z"
+  },
+  {
+    "id": "eval_energy_02",
+    "title": "Nowelizacja ustawy o odnawialnych źródłach energii",
+    "content": "Projekt podnosi limity mocy dla instalacji fotowoltaicznych prosumentów oraz zmienia zasady rozliczania energii wprowadzonej do sieci.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.11.Z"
+  },
+  {
+    "id": "eval_energy_03",
+    "title": "Ustawa o cenach maksymalnych energii elektrycznej",
+    "content": "Zamrożenie taryf na energię elektryczną dla gospodarstw domowych oraz rekompensaty wypłacane sprzedawcom prądu przez Zarządcę Rozliczeń.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.14.Z"
+  },
+  {
+    "id": "eval_energy_04",
+    "title": "Rozporządzenie w sprawie warunków przyłączania do sieci przesyłowej",
+    "content": "Operator systemu przesyłowego energii elektrycznej otrzymuje nowe terminy wydawania warunków przyłączenia dla źródeł wytwórczych.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.12.Z"
+  },
+  {
+    "id": "eval_energy_05",
+    "title": "Projekt ustawy o zmianie ustawy o inwestycjach w zakresie elektrowni wiatrowych",
+    "content": "Zmiana minimalnej odległości lądowych farm wiatrowych od zabudowy mieszkaniowej oraz udział gminy w przychodach z energii wiatrowej.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.11.Z"
+  },
+  {
+    "id": "eval_energy_06",
+    "title": "Ustawa o wsparciu produkcji biometanu",
+    "content": "Projekt wprowadza system wsparcia dla wytwórców biometanu wtłaczanego do sieci gazowej oraz obowiązek zakupu przez sprzedawców gazu.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.11.Z"
+  },
+  {
+    "id": "eval_energy_07",
+    "title": "Nowelizacja prawa energetycznego w zakresie taryf dystrybucyjnych",
+    "content": "Prezes URE zatwierdza taryfy dystrybucji energii elektrycznej według nowej metodyki uwzględniającej nakłady na modernizację sieci.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.13.Z"
+  },
+  {
+    "id": "eval_energy_08",
+    "title": "Projekt ustawy o magazynach energii elektrycznej",
+    "content": "Ustawa definiuje status magazynu energii w systemie elektroenergetycznym oraz zwalnia go z części opłat sieciowych.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.11.Z"
+  },
+  {
+    "id": "eval_energy_09",
+    "title": "Rozporządzenie w sprawie obowiązku zakupu energii z odnawialnych źródeł",
+    "content": "Określenie udziału energii elektrycznej z OZE, jaki sprzedawcy zobowiązani są zapewnić odbiorcom końcowym w kolejnym roku.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.14.Z"
+  },
+  {
+    "id": "eval_energy_10",
+    "title": "Ustawa o zmianie zasad funkcjonowania spółdzielni energetycznych",
+    "content": "Projekt rozszerza katalog podmiotów mogących tworzyć spółdzielnie energetyczne wytwarzające energię elektryczną z fotowoltaiki i biogazu.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.11.Z"
+  },
+  {
+    "id": "eval_energy_11",
+    "title": "Projekt ustawy o inwestycjach w zakresie elektrowni jądrowych",
+    "content": "Tryb lokalizacji i finansowania budowy pierwszej elektrowni jądrowej wytwarzającej energię elektryczną w systemie krajowym.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.11.Z"
+  },
+  {
+    "id": "eval_energy_12",
+    "title": "Nowelizacja zasad taryfowania ciepła systemowego",
+    "content": "Zmiana metodyki zatwierdzania taryf dla wytwórców ciepła w kogeneracji oraz zasad rozliczeń z odbiorcami.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.13.Z"
+  },
+  {
+    "id": "eval_energy_13",
+    "title": "Ustawa o zmianie zasad funkcjonowania rynku mocy",
+    "content": "Warunki udziału jednostek wytwórczych energii elektrycznej w aukcjach mocy oraz wysokość opłaty mocowej.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.14.Z"
+  },
+  {
+    "id": "eval_energy_14",
+    "title": "Projekt ustawy o liniach bezpośrednich",
+    "content": "Zasady budowy linii bezpośredniej łączącej źródło wytwarzania energii elektrycznej z odbiorcą przemysłowym.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.12.Z"
+  },
+  {
+    "id": "eval_energy_15",
+    "title": "Rozporządzenie w sprawie gwarancji pochodzenia energii elektrycznej",
+    "content": "Zasady wydawania i obrotu gwarancjami pochodzenia energii wytworzonej w odnawialnych źródłach energii.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.11.Z"
+  },
+  {
+    "id": "eval_energy_16",
+    "title": "Nowelizacja zasad rozliczeń prosumentów w systemie net-billing",
+    "content": "Zmiana sposobu wyceny energii elektrycznej wprowadzonej do sieci przez posiadaczy mikroinstalacji fotowoltaicznych.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.11.Z"
+  },
+  {
+    "id": "eval_energy_17",
+    "title": "Projekt ustawy o przyłączaniu farm fotowoltaicznych do sieci dystrybucyjnej",
+    "content": "Obowiązki operatorów systemów dystrybucyjnych wobec wytwórców energii ze źródeł odnawialnych oczekujących na przyłączenie.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.12.Z"
+  },
+  {
+    "id": "eval_energy_18",
+    "title": "Ustawa o wdrożeniu liczników zdalnego odczytu energii elektrycznej",
+    "content": "Harmonogram instalacji liczników inteligentnych przez operatorów sieci oraz zasady udostępniania danych pomiarowych.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.13.Z"
+  },
+  {
+    "id": "eval_energy_19",
+    "title": "Projekt ustawy o zapasach obowiązkowych gazu ziemnego",
+    "content": "Poziom zapasów gazu utrzymywanych przez przedsiębiorstwa energetyczne oraz zasady ich uruchamiania.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.14.Z"
+  },
+  {
+    "id": "eval_energy_20",
+    "title": "Rozporządzenie w sprawie taryf na paliwa gazowe dla gospodarstw domowych",
+    "content": "Zatwierdzanie taryf sprzedaży gazu ziemnego odbiorcom w gospodarstwach domowych przez Prezesa URE.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.14.Z"
+  },
+  {
+    "id": "eval_energy_21",
+    "title": "Ustawa o strategicznych inwestycjach w sieci przesyłowe energii elektrycznej",
+    "content": "Uproszczony tryb realizacji inwestycji w linie i stacje elektroenergetyczne najwyższych napięć.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.12.Z"
+  },
+  {
+    "id": "eval_energy_22",
+    "title": "Projekt ustawy o współdzieleniu mocy przyłączeniowej",
+    "content": "Zasady cable poolingu, czyli korzystania z jednego przyłącza sieciowego przez kilka źródeł wytwarzania energii.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.12.Z"
+  },
+  {
+    "id": "eval_energy_23",
+    "title": "Ustawa o wsparciu przemysłu energochłonnego",
+    "content": "Rekompensaty kosztów energii elektrycznej dla zakładów o wysokim zużyciu prądu w procesach produkcyjnych.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.14.Z"
+  },
+  {
+    "id": "eval_energy_24",
+    "title": "Nowelizacja obliga giełdowego w obrocie energią elektryczną",
+    "content": "Zakres obowiązku sprzedaży wytworzonej energii elektrycznej za pośrednictwem giełdy towarowej.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.14.Z"
+  },
+  {
+    "id": "eval_energy_25",
+    "title": "Projekt ustawy o wsparciu produkcji wodoru odnawialnego",
+    "content": "System wsparcia dla instalacji wytwarzających wodór z energii elektrycznej ze źródeł odnawialnych.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.11.Z"
+  },
+  {
+    "id": "eval_energy_26",
+    "title": "Ustawa o agregacji i odpowiedzi odbioru w systemie elektroenergetycznym",
+    "content": "Status agregatora oraz zasady wynagradzania odbiorców za czasowe ograniczenie poboru energii elektrycznej.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.14.Z"
+  },
+  {
+    "id": "eval_energy_27",
+    "title": "Rozporządzenie w sprawie audytu energetycznego przedsiębiorstw",
+    "content": "Obowiązek przeprowadzania audytu zużycia energii przez dużych przedsiębiorców oraz zakres raportowania.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.13.Z"
+  },
+  {
+    "id": "eval_energy_28",
+    "title": "Projekt ustawy o uproszczeniu zgłoszeń mikroinstalacji OZE",
+    "content": "Skrócenie procedury zgłaszania przyłączenia mikroinstalacji fotowoltaicznych do sieci dystrybucyjnej.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.11.Z"
+  },
+  {
+    "id": "eval_energy_29",
+    "title": "Ustawa o zamrożeniu cen energii dla odbiorców wrażliwych",
+    "content": "Utrzymanie limitów cen energii elektrycznej dla gospodarstw domowych o niskich dochodach oraz rekompensaty dla sprzedawców.",
+    "expected_category": "REG_ENERGY_OZE",
+    "expected_pkd": "35.14.Z"
+  },
+  {
+    "id": "eval_env_01",
+    "title": "Projekt ustawy o systemie kaucyjnym",
+    "content": "Wprowadzenie kaucji za opakowania po napojach oraz obowiązki wprowadzających i podmiotów prowadzących punkty zbiórki.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "38.11.Z"
+  },
+  {
+    "id": "eval_env_02",
+    "title": "Nowelizacja ustawy o odpadach",
+    "content": "Zmiana zasad ewidencji odpadów w BDO oraz obowiązki posiadaczy odpadów w zakresie ich zagospodarowania.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "38.11.Z"
+  },
+  {
+    "id": "eval_env_03",
+    "title": "Ustawa o zmianie zasad gospodarowania odpadami komunalnymi w gminach",
+    "content": "Nowe stawki opłat za gospodarowanie odpadami komunalnymi oraz poziomy recyklingu wymagane od gmin.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "38.21.Z"
+  },
+  {
+    "id": "eval_env_04",
+    "title": "Projekt ustawy o rozszerzonej odpowiedzialności producenta",
+    "content": "Obowiązki finansowe wprowadzających produkty w opakowaniach za ich recykling i odzysk po zużyciu.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "38.32.Z"
+  },
+  {
+    "id": "eval_env_05",
+    "title": "Nowelizacja prawa ochrony środowiska w zakresie pozwoleń zintegrowanych",
+    "content": "Zmiana warunków wydawania pozwoleń środowiskowych dla instalacji przemysłowych oraz kontrola emisji do powietrza.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "39.00.Z"
+  },
+  {
+    "id": "eval_env_06",
+    "title": "Ustawa o zmianie prawa wodnego",
+    "content": "Zasady wydawania zgód wodnoprawnych oraz opłaty za usługi wodne pobierane przez Wody Polskie.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "39.00.Z"
+  },
+  {
+    "id": "eval_env_07",
+    "title": "Projekt ustawy o ograniczeniu emisji gazów cieplarnianych",
+    "content": "Krajowe cele redukcji emisji CO2 oraz zasady raportowania emisji przez instalacje objęte systemem handlu uprawnieniami.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "39.00.Z"
+  },
+  {
+    "id": "eval_env_08",
+    "title": "Rozporządzenie w sprawie składowisk odpadów",
+    "content": "Wymagania techniczne dla składowisk oraz zasady monitoringu środowiskowego po zakończeniu ich eksploatacji.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "38.21.Z"
+  },
+  {
+    "id": "eval_env_09",
+    "title": "Ustawa o zmianie zasad ochrony przyrody i parków narodowych",
+    "content": "Nowe zasady tworzenia form ochrony przyrody oraz zarządzania obszarami parków narodowych i krajobrazowych.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "39.00.Z"
+  },
+  {
+    "id": "eval_env_10",
+    "title": "Projekt ustawy o przetwarzaniu zużytego sprzętu elektrycznego",
+    "content": "Obowiązki zbierających i przetwarzających zużyty sprzęt elektryczny i elektroniczny oraz poziomy odzysku surowców.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "38.32.Z"
+  },
+  {
+    "id": "eval_env_11",
+    "title": "Nowelizacja zasad wydawania pozwoleń na emisje przemysłowe",
+    "content": "Konkluzje BAT dla instalacji przemysłowych oraz dopuszczalne wielkości emisji zanieczyszczeń do powietrza.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "39.00.Z"
+  },
+  {
+    "id": "eval_env_12",
+    "title": "Projekt ustawy o ochronie środowiska przed hałasem",
+    "content": "Dopuszczalne poziomy hałasu w środowisku oraz programy ochrony przed hałasem w miastach.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "39.00.Z"
+  },
+  {
+    "id": "eval_env_13",
+    "title": "Ustawa o zmianie zasad odprowadzania ścieków komunalnych",
+    "content": "Obowiązki gmin w zakresie budowy oczyszczalni ścieków oraz taryfy za zbiorowe odprowadzanie ścieków.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "39.00.Z"
+  },
+  {
+    "id": "eval_env_14",
+    "title": "Nowelizacja zasad ocen oddziaływania na obszary Natura 2000",
+    "content": "Zakres oceny oddziaływania przedsięwzięcia na obszary chronione oraz udział organizacji ekologicznych.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "39.00.Z"
+  },
+  {
+    "id": "eval_env_15",
+    "title": "Projekt ustawy o gospodarce leśnej i ochronie lasów",
+    "content": "Zasady prowadzenia gospodarki leśnej, wyłączenia z pozyskania drewna i ochrona ekosystemów leśnych.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "39.00.Z"
+  },
+  {
+    "id": "eval_env_16",
+    "title": "Ustawa o programach ochrony jakości powietrza",
+    "content": "Obowiązki samorządów w zakresie ograniczania emisji pyłów oraz wymiany źródeł ciepła w budynkach.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "39.00.Z"
+  },
+  {
+    "id": "eval_env_17",
+    "title": "Projekt ustawy o ograniczeniu tworzyw sztucznych jednorazowego użytku",
+    "content": "Zakaz wprowadzania do obrotu wybranych produktów plastikowych oraz opłaty od opakowań jednorazowych.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "38.11.Z"
+  },
+  {
+    "id": "eval_env_18",
+    "title": "Nowelizacja zasad zbierania baterii i akumulatorów",
+    "content": "Poziomy zbiórki zużytych baterii oraz obowiązki wprowadzających je do obrotu w zakresie recyklingu.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "38.32.Z"
+  },
+  {
+    "id": "eval_env_19",
+    "title": "Ustawa o pojazdach wycofanych z eksploatacji",
+    "content": "Obowiązki stacji demontażu pojazdów oraz poziomy odzysku i recyklingu odpadów z samochodów.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "38.32.Z"
+  },
+  {
+    "id": "eval_env_20",
+    "title": "Projekt ustawy o odpadach budowlanych i rozbiórkowych",
+    "content": "Obowiązek selektywnej zbiórki odpadów z budowy oraz zasady ich przetwarzania i ponownego użycia.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "38.11.Z"
+  },
+  {
+    "id": "eval_env_21",
+    "title": "Nowelizacja zasad termicznego przekształcania odpadów",
+    "content": "Warunki eksploatacji spalarni odpadów komunalnych oraz limity mocy przerobowych instalacji.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "38.21.Z"
+  },
+  {
+    "id": "eval_env_22",
+    "title": "Ustawa o krajowym programie oczyszczania ścieków komunalnych",
+    "content": "Aglomeracje objęte programem, wymagania dla oczyszczalni i sprawozdawczość gmin z realizacji zadań.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "39.00.Z"
+  },
+  {
+    "id": "eval_env_23",
+    "title": "Projekt ustawy o ochronie powierzchni ziemi i rekultywacji gruntów",
+    "content": "Standardy jakości gleby oraz obowiązki władającego powierzchnią ziemi w zakresie remediacji zanieczyszczeń.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "39.00.Z"
+  },
+  {
+    "id": "eval_env_24",
+    "title": "Nowelizacja zasad naliczania opłat za korzystanie ze środowiska",
+    "content": "Stawki opłat za wprowadzanie gazów i pyłów do powietrza oraz za składowanie odpadów.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "38.21.Z"
+  },
+  {
+    "id": "eval_env_25",
+    "title": "Ustawa o transgranicznym przemieszczaniu odpadów niebezpiecznych",
+    "content": "Zgody na wywóz i przywóz odpadów niebezpiecznych oraz kontrola przemieszczania przez inspekcję środowiska.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "38.11.Z"
+  },
+  {
+    "id": "eval_env_26",
+    "title": "Projekt ustawy o usuwaniu wyrobów zawierających azbest",
+    "content": "Finansowanie demontażu i unieszkodliwiania wyrobów azbestowych oraz obowiązki właścicieli obiektów.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "38.21.Z"
+  },
+  {
+    "id": "eval_env_27",
+    "title": "Nowelizacja przepisów o retencji wód i przeciwdziałaniu suszy",
+    "content": "Inwestycje w małą retencję, pozwolenia wodnoprawne oraz gospodarowanie zasobami wodnymi w okresach suszy.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "39.00.Z"
+  },
+  {
+    "id": "eval_env_28",
+    "title": "Ustawa o odpowiedzialności za szkody w środowisku",
+    "content": "Obowiązki podmiotu korzystającego ze środowiska w razie wystąpienia bezpośredniego zagrożenia szkodą.",
+    "expected_category": "REG_ENVIRONMENT",
+    "expected_pkd": "39.00.Z"
+  },
+  {
+    "id": "eval_estate_01",
     "title": "Projekt ustawy o planach ogólnych i warunkach zabudowy",
     "content": "Gminy otrzymują wydłużony termin na uchwalenie planów ogólnych zastępujących dotychczasowe studia uwarunkowań.",
     "expected_category": "REG_REAL_ESTATE",
     "expected_pkd": "68.10.Z"
+  },
+  {
+    "id": "eval_estate_02",
+    "title": "Nowelizacja prawa budowlanego",
+    "content": "Uproszczenie procedury pozwolenia na budowę budynków mieszkalnych jednorodzinnych oraz cyfryzacja dziennika budowy.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "41.20.Z"
+  },
+  {
+    "id": "eval_estate_03",
+    "title": "Ustawa o zmianie ustawy o gospodarce nieruchomościami",
+    "content": "Nowe zasady wyceny nieruchomości przy wywłaszczeniu na cele publiczne oraz tryb zwrotu nieruchomości.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "68.10.Z"
+  },
+  {
+    "id": "eval_estate_04",
+    "title": "Projekt ustawy o ochronie praw nabywcy lokalu mieszkalnego",
+    "content": "Rozszerzenie Deweloperskiego Funduszu Gwarancyjnego oraz obowiązki dewelopera wobec nabywców mieszkań.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "41.10.Z"
+  },
+  {
+    "id": "eval_estate_05",
+    "title": "Uchwała w sprawie miejscowego planu zagospodarowania przestrzennego",
+    "content": "Ustalenie przeznaczenia terenów pod zabudowę usługową oraz wskaźników intensywności zabudowy w granicach planu MPZP.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "68.10.Z"
+  },
+  {
+    "id": "eval_estate_06",
+    "title": "Nowelizacja ustawy o własności lokali",
+    "content": "Zmiana zasad podejmowania uchwał przez wspólnoty mieszkaniowe oraz zarządzania częściami wspólnymi nieruchomości.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "68.20.Z"
+  },
+  {
+    "id": "eval_estate_07",
+    "title": "Ustawa o zmianie zasad najmu instytucjonalnego",
+    "content": "Regulacja umów najmu lokali mieszkalnych zawieranych przez podmioty prowadzące działalność w zakresie wynajmu nieruchomości.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "68.20.Z"
+  },
+  {
+    "id": "eval_estate_08",
+    "title": "Projekt ustawy o inwestycjach mieszkaniowych i towarzyszących",
+    "content": "Szczególny tryb lokalizacji inwestycji mieszkaniowych z pominięciem miejscowego planu zagospodarowania przestrzennego.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "41.10.Z"
+  },
+  {
+    "id": "eval_estate_09",
+    "title": "Rozporządzenie w sprawie warunków technicznych budynków",
+    "content": "Nowe wymagania dotyczące odległości budynków od granicy działki oraz minimalnej powierzchni lokali użytkowych.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "41.20.Z"
+  },
+  {
+    "id": "eval_estate_10",
+    "title": "Ustawa o zmianie zasad wydawania decyzji o warunkach zabudowy",
+    "content": "Ograniczenie terminu ważności decyzji o warunkach zabudowy oraz powiązanie jej z planem ogólnym gminy.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "68.10.Z"
+  },
+  {
+    "id": "eval_estate_11",
+    "title": "Projekt ustawy o strefach planistycznych w planie ogólnym gminy",
+    "content": "Katalog stref planistycznych i zasady ustalania w nich parametrów zabudowy na obszarze gminy.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "68.10.Z"
+  },
+  {
+    "id": "eval_estate_12",
+    "title": "Nowelizacja zasad naliczania renty planistycznej",
+    "content": "Wysokość opłaty pobieranej przy zbyciu nieruchomości, której wartość wzrosła wskutek uchwalenia planu miejscowego.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "68.10.Z"
+  },
+  {
+    "id": "eval_estate_13",
+    "title": "Ustawa o przekształceniu prawa użytkowania wieczystego gruntów",
+    "content": "Zasady przekształcenia użytkowania wieczystego we własność oraz wysokość opłaty przekształceniowej.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "68.10.Z"
+  },
+  {
+    "id": "eval_estate_14",
+    "title": "Projekt ustawy o cyfryzacji ksiąg wieczystych",
+    "content": "Elektroniczny dostęp do ksiąg wieczystych nieruchomości oraz zasady dokonywania wpisów przez notariuszy.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "68.10.Z"
+  },
+  {
+    "id": "eval_estate_15",
+    "title": "Nowelizacja ustawy o spółdzielniach mieszkaniowych",
+    "content": "Prawa członków spółdzielni do lokali mieszkalnych oraz zasady rozliczania funduszu remontowego.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "68.20.Z"
+  },
+  {
+    "id": "eval_estate_16",
+    "title": "Ustawa o zmianie zasad najmu okazjonalnego lokali",
+    "content": "Warunki zawierania umów najmu okazjonalnego oraz tryb opróżnienia lokalu mieszkalnego przez najemcę.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "68.20.Z"
+  },
+  {
+    "id": "eval_estate_17",
+    "title": "Projekt ustawy o rewitalizacji obszarów zdegradowanych",
+    "content": "Gminne programy rewitalizacji i szczególne zasady zagospodarowania przestrzennego na obszarach objętych programem.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "68.10.Z"
+  },
+  {
+    "id": "eval_estate_18",
+    "title": "Ustawa uchylająca szczególny tryb lokalizacji inwestycji mieszkaniowych",
+    "content": "Przywrócenie ogólnych zasad lokalizowania budownictwa mieszkaniowego zgodnie z planem miejscowym.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "41.10.Z"
+  },
+  {
+    "id": "eval_estate_19",
+    "title": "Nowelizacja zasad prowadzenia robót budowlanych przy zabytkach",
+    "content": "Wymogi uzyskania pozwolenia konserwatorskiego przed rozpoczęciem budowy lub przebudowy obiektu zabytkowego.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "41.20.Z"
+  },
+  {
+    "id": "eval_estate_20",
+    "title": "Projekt ustawy o legalizacji samowoli budowlanej",
+    "content": "Uproszczona procedura legalizacji obiektów wybudowanych bez pozwolenia oraz wysokość opłaty legalizacyjnej.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "41.20.Z"
+  },
+  {
+    "id": "eval_estate_21",
+    "title": "Ustawa o zmianie zasad oddawania budynków do użytkowania",
+    "content": "Zakres zawiadomienia o zakończeniu budowy oraz przypadki wymagające pozwolenia na użytkowanie.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "41.20.Z"
+  },
+  {
+    "id": "eval_estate_22",
+    "title": "Nowelizacja przepisów o zarządzie nieruchomością wspólną",
+    "content": "Obowiązki zarządu wspólnoty mieszkaniowej w zakresie utrzymania i remontów części wspólnych budynku.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "68.20.Z"
+  },
+  {
+    "id": "eval_estate_23",
+    "title": "Projekt ustawy o obrocie gruntami przeznaczonymi pod zabudowę",
+    "content": "Warunki nabywania nieruchomości gruntowych przeznaczonych w planie miejscowym na cele budowlane.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "68.10.Z"
+  },
+  {
+    "id": "eval_estate_24",
+    "title": "Ustawa o zapewnieniu dostępu działki do drogi publicznej",
+    "content": "Zasady ustanawiania służebności drogowej oraz wymogi obsługi komunikacyjnej nowej zabudowy.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "68.10.Z"
+  },
+  {
+    "id": "eval_estate_25",
+    "title": "Nowelizacja zasad scalania i podziału nieruchomości",
+    "content": "Tryb przeprowadzania scalenia i podziału nieruchomości przez gminę oraz rozliczenia z właścicielami.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "68.10.Z"
+  },
+  {
+    "id": "eval_estate_26",
+    "title": "Projekt ustawy o zawodowym zarządzaniu nieruchomościami",
+    "content": "Wymogi kwalifikacyjne dla zarządców nieruchomości oraz obowiązkowe ubezpieczenie odpowiedzialności cywilnej.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "68.20.Z"
+  },
+  {
+    "id": "eval_estate_27",
+    "title": "Ustawa o inwestycjach towarzyszących budownictwu mieszkaniowemu",
+    "content": "Zasady realizacji uzbrojenia terenu i infrastruktury technicznej dla nowych osiedli mieszkaniowych.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "41.10.Z"
+  },
+  {
+    "id": "eval_estate_28",
+    "title": "Nowelizacja zasad działania społecznych inicjatyw mieszkaniowych",
+    "content": "Finansowanie budowy mieszkań na wynajem przez SIM i TBS oraz zasady ustalania czynszu.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "41.10.Z"
+  },
+  {
+    "id": "eval_estate_29",
+    "title": "Rozporządzenie w sprawie standardów urbanistycznych zabudowy wielorodzinnej",
+    "content": "Minimalne wskaźniki powierzchni biologicznie czynnej i dostępu do usług dla nowych inwestycji mieszkaniowych.",
+    "expected_category": "REG_REAL_ESTATE",
+    "expected_pkd": "41.10.Z"
+  },
+  {
+    "id": "eval_health_01",
+    "title": "Nowelizacja ustawy o refundacji leków",
+    "content": "Zmiana zasad ustalania urzędowych cen zbytu leków refundowanych oraz marż aptecznych w obrocie detalicznym.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "21.20.Z"
+  },
+  {
+    "id": "eval_health_02",
+    "title": "Projekt ustawy o zmianie ustawy o świadczeniach opieki zdrowotnej",
+    "content": "Nowe zasady finansowania świadczeń szpitalnych przez Narodowy Fundusz Zdrowia oraz wyceny procedur medycznych.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "86.10.Z"
+  },
+  {
+    "id": "eval_health_03",
+    "title": "Ustawa o modernizacji i restrukturyzacji szpitali powiatowych",
+    "content": "Tryb naprawczy dla podmiotów leczniczych prowadzących szpitale oraz zasady konsolidacji oddziałów.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "86.10.Z"
+  },
+  {
+    "id": "eval_health_04",
+    "title": "Nowelizacja prawa farmaceutycznego",
+    "content": "Zmiana warunków prowadzenia aptek ogólnodostępnych oraz zasad wydawania leków na receptę przez farmaceutów.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "47.73.Z"
+  },
+  {
+    "id": "eval_health_05",
+    "title": "Projekt ustawy o wyrobach medycznych",
+    "content": "Obowiązki podmiotów wprowadzających wyroby medyczne do obrotu oraz nadzór nad reklamą wyrobów.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "21.20.Z"
+  },
+  {
+    "id": "eval_health_06",
+    "title": "Ustawa o zmianie zasad wykonywania zawodu lekarza",
+    "content": "Warunki uzyskiwania prawa wykonywania zawodu lekarza i lekarza dentysty oraz przebieg szkolenia specjalizacyjnego.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "86.21.Z"
+  },
+  {
+    "id": "eval_health_07",
+    "title": "Rozporządzenie w sprawie wykazu leków refundowanych",
+    "content": "Aktualizacja listy leków, środków spożywczych specjalnego przeznaczenia żywieniowego i wyrobów objętych refundacją.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "47.73.Z"
+  },
+  {
+    "id": "eval_health_08",
+    "title": "Projekt ustawy o jakości w opiece zdrowotnej i bezpieczeństwie pacjenta",
+    "content": "System autoryzacji podmiotów leczniczych oraz rejestr zdarzeń niepożądanych w szpitalach.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "86.10.Z"
+  },
+  {
+    "id": "eval_health_09",
+    "title": "Ustawa o zmianie zasad organizacji podstawowej opieki zdrowotnej",
+    "content": "Zakres świadczeń lekarza rodzinnego oraz zasady finansowania opieki koordynowanej przez NFZ.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "86.21.Z"
+  },
+  {
+    "id": "eval_health_10",
+    "title": "Nowelizacja ustawy o zawodzie farmaceuty",
+    "content": "Rozszerzenie uprawnień farmaceutów o świadczenia opieki farmaceutycznej realizowane w aptece.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "47.73.Z"
+  },
+  {
+    "id": "eval_health_11",
+    "title": "Nowelizacja zasad wystawiania e-recept i e-skierowań",
+    "content": "Elektroniczna dokumentacja medyczna oraz obowiązki lekarzy w zakresie wystawiania recept w systemie P1.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "86.21.Z"
+  },
+  {
+    "id": "eval_health_12",
+    "title": "Projekt ustawy o badaniach klinicznych produktów leczniczych",
+    "content": "Zasady prowadzenia badań klinicznych, obowiązki sponsora oraz ochrona uczestników badania.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "21.20.Z"
+  },
+  {
+    "id": "eval_health_13",
+    "title": "Ustawa o zmianie zasad organizacji ratownictwa medycznego",
+    "content": "Zasady działania zespołów ratownictwa medycznego oraz finansowanie szpitalnych oddziałów ratunkowych.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "86.10.Z"
+  },
+  {
+    "id": "eval_health_14",
+    "title": "Projekt ustawy o opiece psychiatrycznej dzieci i młodzieży",
+    "content": "Poziomy referencyjne opieki psychiatrycznej oraz finansowanie świadczeń dla pacjentów małoletnich.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "86.10.Z"
+  },
+  {
+    "id": "eval_health_15",
+    "title": "Nowelizacja zasad finansowania opieki długoterminowej",
+    "content": "Świadczenia pielęgnacyjne i opiekuńcze w zakładach opiekuńczo-leczniczych oraz wycena osobodnia.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "86.10.Z"
+  },
+  {
+    "id": "eval_health_16",
+    "title": "Ustawa o zmianie programu szczepień ochronnych",
+    "content": "Zakres obowiązkowych szczepień ochronnych oraz zasady kwalifikacji pacjenta do szczepienia.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "86.21.Z"
+  },
+  {
+    "id": "eval_health_17",
+    "title": "Projekt ustawy o publicznej służbie krwi",
+    "content": "Organizacja krwiodawstwa i krwiolecznictwa oraz zasady pobierania i przetwarzania krwi.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "86.10.Z"
+  },
+  {
+    "id": "eval_health_18",
+    "title": "Nowelizacja ustawy o pobieraniu i przeszczepianiu komórek i narządów",
+    "content": "Zasady zgłaszania dawców, kwalifikacji biorców oraz prowadzenia rejestrów transplantacyjnych.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "86.10.Z"
+  },
+  {
+    "id": "eval_health_19",
+    "title": "Ustawa o zmianie zasad wykonywania czynności diagnostyki laboratoryjnej",
+    "content": "Wymogi wobec medycznych laboratoriów diagnostycznych oraz uprawnienia diagnostów laboratoryjnych.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "86.21.Z"
+  },
+  {
+    "id": "eval_health_20",
+    "title": "Projekt ustawy o normach zatrudnienia pielęgniarek i położnych",
+    "content": "Minimalne wskaźniki obsady pielęgniarskiej na oddziałach szpitalnych i skutki ich niedotrzymania.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "86.10.Z"
+  },
+  {
+    "id": "eval_health_21",
+    "title": "Nowelizacja zasad wykonywania zawodu ratownika medycznego",
+    "content": "Uprawnienia zawodowe ratowników medycznych oraz zasady doskonalenia zawodowego.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "86.21.Z"
+  },
+  {
+    "id": "eval_health_22",
+    "title": "Ustawa o przeciwdziałaniu eksportowi odwróconemu leków",
+    "content": "Nadzór nad wywozem leków zagrożonych brakiem dostępności oraz obowiązki hurtowni farmaceutycznych i aptek.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "47.73.Z"
+  },
+  {
+    "id": "eval_health_23",
+    "title": "Projekt ustawy o zasadzie apteka dla aptekarza",
+    "content": "Ograniczenia własnościowe i geograficzne przy wydawaniu zezwoleń na prowadzenie apteki ogólnodostępnej.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "47.73.Z"
+  },
+  {
+    "id": "eval_health_24",
+    "title": "Nowelizacja zasad kwalifikacji szpitali do sieci",
+    "content": "Kryteria zakwalifikowania podmiotu leczniczego do systemu podstawowego szpitalnego zabezpieczenia świadczeń.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "86.10.Z"
+  },
+  {
+    "id": "eval_health_25",
+    "title": "Ustawa o zmianie zasad finansowania Narodowego Funduszu Zdrowia",
+    "content": "Źródła przychodów NFZ oraz zasady podziału środków na świadczenia opieki zdrowotnej między oddziały.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "86.10.Z"
+  },
+  {
+    "id": "eval_health_26",
+    "title": "Projekt ustawy o świadczeniach telemedycznych",
+    "content": "Warunki udzielania porad lekarskich na odległość oraz dokumentowanie teleporady w dokumentacji medycznej.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "86.21.Z"
+  },
+  {
+    "id": "eval_health_27",
+    "title": "Nowelizacja zasad opieki onkologicznej",
+    "content": "Ścieżka diagnostyki i leczenia onkologicznego pacjenta oraz terminy realizacji świadczeń przez szpitale.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "86.10.Z"
+  },
+  {
+    "id": "eval_health_28",
+    "title": "Ustawa o zmianie zasad sprawowania profilaktycznej opieki zdrowotnej nad pracownikami",
+    "content": "Zakres badań lekarskich medycyny pracy oraz obowiązki lekarza orzekającego o zdolności do pracy.",
+    "expected_category": "REG_HEALTHCARE",
+    "expected_pkd": "86.21.Z"
+  },
+  {
+    "id": "eval_tax_01",
+    "title": "Projekt ustawy o zmianie ustawy o podatku od towarów i usług",
+    "content": "Projekt wdraża obowiązek fakturowania elektronicznego KSeF dla wszystkich podatników VAT czynnych od 1 lipca 2026 r.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "69.20.Z"
+  },
+  {
+    "id": "eval_tax_02",
+    "title": "Nowelizacja ustawy o podatku dochodowym od osób prawnych",
+    "content": "Zmiana zasad rozliczania podatku CIT dla spółek holdingowych oraz nowe limity kosztów finansowania dłużnego.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "69.20.Z"
+  },
+  {
+    "id": "eval_tax_03",
+    "title": "Ustawa o zmianie ordynacji podatkowej",
+    "content": "Skrócenie terminów przedawnienia zobowiązań podatkowych oraz nowe zasady wydawania interpretacji indywidualnych przez KIS.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "69.20.Z"
+  },
+  {
+    "id": "eval_tax_04",
+    "title": "Projekt ustawy o zmianie stawek akcyzy na wyroby alkoholowe",
+    "content": "Podwyższenie stawek podatku akcyzowego oraz zmiana zasad prowadzenia składów podatkowych przez producentów.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "69.20.Z"
+  },
+  {
+    "id": "eval_tax_05",
+    "title": "Nowelizacja ustawy o podatku dochodowym od osób fizycznych",
+    "content": "Podniesienie kwoty wolnej od podatku PIT oraz zmiana zasad rozliczania ryczałtu przez osoby prowadzące działalność gospodarczą.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "69.20.Z"
+  },
+  {
+    "id": "eval_tax_06",
+    "title": "Ustawa o zmianie ustawy o rachunkowości",
+    "content": "Nowe progi obowiązku badania sprawozdań finansowych przez biegłego rewidenta oraz raportowanie zrównoważonego rozwoju.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "69.20.Z"
+  },
+  {
+    "id": "eval_tax_07",
+    "title": "Projekt ustawy o nadzorze nad rynkiem kapitałowym",
+    "content": "Rozszerzenie uprawnień Komisji Nadzoru Finansowego wobec emitentów papierów wartościowych i domów maklerskich.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "66.19.Z"
+  },
+  {
+    "id": "eval_tax_08",
+    "title": "Nowelizacja prawa bankowego w zakresie kredytów hipotecznych",
+    "content": "Zmiana zasad ustalania oprocentowania kredytów przez banki oraz obowiązki informacyjne wobec kredytobiorców.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "64.19.Z"
+  },
+  {
+    "id": "eval_tax_09",
+    "title": "Ustawa o podatku minimalnym dla dużych przedsiębiorstw",
+    "content": "Wprowadzenie minimalnego podatku dochodowego dla podatników CIT wykazujących niską rentowność podatkową.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "69.20.Z"
+  },
+  {
+    "id": "eval_tax_10",
+    "title": "Rozporządzenie w sprawie zwolnień z obowiązku ewidencji na kasie fiskalnej",
+    "content": "Katalog czynności zwolnionych z obowiązku ewidencjonowania sprzedaży VAT przy zastosowaniu kas rejestrujących.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "69.20.Z"
+  },
+  {
+    "id": "eval_tax_11",
+    "title": "Nowelizacja zasad ryczałtu od dochodów spółek",
+    "content": "Zmiana warunków wejścia i wyjścia z estońskiego CIT oraz zasad opodatkowania ukrytych zysków.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "69.20.Z"
+  },
+  {
+    "id": "eval_tax_12",
+    "title": "Projekt ustawy o uldze na działalność badawczo-rozwojową",
+    "content": "Rozszerzenie katalogu kosztów kwalifikowanych odliczanych od podstawy opodatkowania podatkiem dochodowym.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "69.20.Z"
+  },
+  {
+    "id": "eval_tax_13",
+    "title": "Ustawa o zmianie zasad dokumentacji cen transferowych",
+    "content": "Progi dokumentacyjne dla transakcji z podmiotami powiązanymi oraz terminy składania informacji TPR.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "69.20.Z"
+  },
+  {
+    "id": "eval_tax_14",
+    "title": "Nowelizacja przepisów o raportowaniu schematów podatkowych",
+    "content": "Zakres obowiązku przekazywania Szefowi KAS informacji o schematach podatkowych przez promotorów i korzystających.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "69.20.Z"
+  },
+  {
+    "id": "eval_tax_15",
+    "title": "Projekt ustawy o zmianie ustawy o podatkach i opłatach lokalnych",
+    "content": "Nowa definicja budowli i budynku na potrzeby wymiaru podatku od nieruchomości.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "69.20.Z"
+  },
+  {
+    "id": "eval_tax_16",
+    "title": "Ustawa o zmianie zasad opodatkowania niezrealizowanych zysków",
+    "content": "Warunki powstania obowiązku podatkowego przy przeniesieniu składników majątku poza terytorium kraju.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "69.20.Z"
+  },
+  {
+    "id": "eval_tax_17",
+    "title": "Nowelizacja zasad poboru podatku u źródła",
+    "content": "Mechanizm pay and refund dla wypłat odsetek i dywidend oraz warunki stosowania preferencji umownych.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "69.20.Z"
+  },
+  {
+    "id": "eval_tax_18",
+    "title": "Projekt ustawy o grupach VAT",
+    "content": "Zasady tworzenia grup VAT przez podmioty powiązane oraz rozliczania transakcji wewnątrz grupy.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "69.20.Z"
+  },
+  {
+    "id": "eval_tax_19",
+    "title": "Ustawa o zmianie stawek akcyzy na wyroby tytoniowe",
+    "content": "Podwyższenie stawek podatku akcyzowego na papierosy i wyroby nowatorskie w kolejnych latach.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "69.20.Z"
+  },
+  {
+    "id": "eval_tax_20",
+    "title": "Nowelizacja przepisów o opłacie od napojów słodzonych",
+    "content": "Zmiana zasad naliczania i poboru opłaty cukrowej przez podmioty wprowadzające napoje do obrotu.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "69.20.Z"
+  },
+  {
+    "id": "eval_tax_21",
+    "title": "Projekt ustawy o zmianie daniny solidarnościowej",
+    "content": "Zakres dochodów uwzględnianych przy ustalaniu podstawy daniny solidarnościowej od najwyższych dochodów.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "69.20.Z"
+  },
+  {
+    "id": "eval_tax_22",
+    "title": "Ustawa o zmianie zasad kontroli celno-skarbowej",
+    "content": "Uprawnienia Krajowej Administracji Skarbowej przy kontroli rozliczeń podatkowych przedsiębiorców.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "69.20.Z"
+  },
+  {
+    "id": "eval_tax_23",
+    "title": "Nowelizacja ustawy o przeciwdziałaniu praniu pieniędzy",
+    "content": "Obowiązki instytucji obowiązanych w zakresie identyfikacji beneficjenta rzeczywistego i raportowania transakcji.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "64.19.Z"
+  },
+  {
+    "id": "eval_tax_24",
+    "title": "Projekt ustawy o usługach płatniczych",
+    "content": "Warunki prowadzenia działalności przez krajowe instytucje płatnicze oraz zasady autoryzacji transakcji.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "64.19.Z"
+  },
+  {
+    "id": "eval_tax_25",
+    "title": "Ustawa o rynku kryptoaktywów",
+    "content": "Wdrożenie rozporządzenia MiCA: nadzór nad emitentami kryptoaktywów i dostawcami usług obrotu.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "66.19.Z"
+  },
+  {
+    "id": "eval_tax_26",
+    "title": "Nowelizacja zasad obrotu wierzytelnościami",
+    "content": "Wymogi wobec podmiotów nabywających wierzytelności bankowe oraz obowiązki informacyjne wobec dłużników.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "64.19.Z"
+  },
+  {
+    "id": "eval_tax_27",
+    "title": "Projekt ustawy o dystrybucji ubezpieczeń",
+    "content": "Obowiązki informacyjne agentów i brokerów ubezpieczeniowych wobec klientów oraz zasady wynagradzania.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "66.19.Z"
+  },
+  {
+    "id": "eval_tax_28",
+    "title": "Ustawa o zmianie zasad działania funduszy inwestycyjnych",
+    "content": "Wymogi wobec towarzystw funduszy inwestycyjnych w zakresie wyceny aktywów i polityki wynagrodzeń.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "66.19.Z"
+  },
+  {
+    "id": "eval_tax_29",
+    "title": "Nowelizacja zasad sporządzania skonsolidowanych sprawozdań finansowych",
+    "content": "Obowiązki jednostek dominujących w zakresie konsolidacji oraz badania sprawozdań przez biegłych rewidentów.",
+    "expected_category": "REG_TAX_FINANCE",
+    "expected_pkd": "69.20.Z"
+  },
+  {
+    "id": "eval_transport_01",
+    "title": "Nowelizacja ustawy o transporcie drogowym",
+    "content": "Zmiana zasad uzyskiwania licencji na przewóz drogowy rzeczy oraz obowiązki przewoźników wobec kierowców.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "49.41.Z"
+  },
+  {
+    "id": "eval_transport_02",
+    "title": "Projekt ustawy o czasie pracy kierowców",
+    "content": "Dostosowanie przepisów o czasie prowadzenia pojazdu i okresach odpoczynku kierowców do regulacji unijnych.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "49.41.Z"
+  },
+  {
+    "id": "eval_transport_03",
+    "title": "Ustawa o zmianie zasad poboru opłaty elektronicznej za przejazd",
+    "content": "Nowe stawki opłat drogowych dla pojazdów ciężarowych oraz zasady funkcjonowania systemu e-TOLL.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "49.41.Z"
+  },
+  {
+    "id": "eval_transport_04",
+    "title": "Nowelizacja ustawy o transporcie kolejowym",
+    "content": "Zasady dostępu przewoźników kolejowych do infrastruktury oraz stawki za korzystanie z linii kolejowych.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "49.20.Z"
+  },
+  {
+    "id": "eval_transport_05",
+    "title": "Projekt ustawy o publicznym transporcie zbiorowym",
+    "content": "Organizacja przewozów pasażerskich przez samorządy oraz zasady finansowania linii autobusowych.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "49.41.Z"
+  },
+  {
+    "id": "eval_transport_06",
+    "title": "Ustawa o zmianie prawa lotniczego",
+    "content": "Obowiązki przewoźników lotniczych wobec pasażerów oraz zasady wykonywania operacji przez bezzałogowe statki powietrzne.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "49.20.Z"
+  },
+  {
+    "id": "eval_transport_07",
+    "title": "Rozporządzenie w sprawie magazynowania i składowania towarów",
+    "content": "Wymagania dla magazynów i centrów logistycznych obsługujących przeładunek towarów w łańcuchu dostaw.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "52.10.B"
+  },
+  {
+    "id": "eval_transport_08",
+    "title": "Projekt ustawy o działalności spedycyjnej",
+    "content": "Zasady wykonywania usług spedycji oraz odpowiedzialność spedytora za powierzony ładunek w transporcie międzynarodowym.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "52.29.C"
+  },
+  {
+    "id": "eval_transport_09",
+    "title": "Ustawa o zmianie zasad przewozu towarów niebezpiecznych",
+    "content": "Wymagania dla przewoźników drogowych realizujących transport materiałów niebezpiecznych ADR oraz szkolenia kierowców.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "49.41.Z"
+  },
+  {
+    "id": "eval_transport_10",
+    "title": "Nowelizacja ustawy o kierujących pojazdami",
+    "content": "Zmiana zasad wydawania uprawnień do kierowania pojazdami ciężarowymi oraz kwalifikacji wstępnej kierowców zawodowych.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "49.41.Z"
+  },
+  {
+    "id": "eval_transport_11",
+    "title": "Nowelizacja zasad stosowania tachografów inteligentnych",
+    "content": "Obowiązek wymiany tachografów w pojazdach ciężarowych oraz kontrola czasu jazdy kierowców.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "49.41.Z"
+  },
+  {
+    "id": "eval_transport_12",
+    "title": "Projekt ustawy o rozwoju transportu intermodalnego",
+    "content": "Wsparcie przewozów łączących transport kolejowy i drogowy oraz budowa terminali przeładunkowych.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "49.20.Z"
+  },
+  {
+    "id": "eval_transport_13",
+    "title": "Ustawa o zmianie zasad przewozu osób pojazdami na aplikację",
+    "content": "Wymogi wobec pośredników przy przewozie osób oraz weryfikacja uprawnień kierowców.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "49.41.Z"
+  },
+  {
+    "id": "eval_transport_14",
+    "title": "Nowelizacja przepisów pakietu mobilności",
+    "content": "Zasady delegowania kierowców w międzynarodowym transporcie drogowym i obowiązek powrotu pojazdu do bazy.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "49.41.Z"
+  },
+  {
+    "id": "eval_transport_15",
+    "title": "Projekt ustawy o bezpieczeństwie ruchu kolejowego",
+    "content": "Obowiązki zarządcy infrastruktury kolejowej oraz zasady certyfikacji przewoźników kolejowych.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "49.20.Z"
+  },
+  {
+    "id": "eval_transport_16",
+    "title": "Ustawa o organizacji dworców i przystanków komunikacyjnych",
+    "content": "Zasady udostępniania przystanków przewoźnikom oraz opłaty za korzystanie z dworców autobusowych.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "49.41.Z"
+  },
+  {
+    "id": "eval_transport_17",
+    "title": "Nowelizacja ustawy o portach i przystaniach morskich",
+    "content": "Zarządzanie infrastrukturą portową oraz zasady przeładunku towarów w portach morskich.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "52.10.B"
+  },
+  {
+    "id": "eval_transport_18",
+    "title": "Projekt ustawy o żegludze śródlądowej",
+    "content": "Warunki uprawiania żeglugi na drogach wodnych śródlądowych oraz przewóz ładunków barkami.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "49.20.Z"
+  },
+  {
+    "id": "eval_transport_19",
+    "title": "Ustawa o zmianie zasad ustalania opłat lotniskowych",
+    "content": "Metodyka kalkulacji opłat pobieranych przez zarządzających lotniskami od przewoźników lotniczych.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "49.20.Z"
+  },
+  {
+    "id": "eval_transport_20",
+    "title": "Nowelizacja zasad służby kontroli ruchu lotniczego",
+    "content": "Organizacja służb żeglugi powietrznej oraz wymogi wobec kontrolerów ruchu lotniczego.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "49.20.Z"
+  },
+  {
+    "id": "eval_transport_21",
+    "title": "Projekt ustawy o przewozie osób z niepełnosprawnościami",
+    "content": "Obowiązki przewoźników drogowych i kolejowych w zakresie dostępności pojazdów i obsługi pasażerów.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "49.41.Z"
+  },
+  {
+    "id": "eval_transport_22",
+    "title": "Ustawa o zmianie zasad wykonywania przewozów autokarowych",
+    "content": "Zezwolenia na regularne międzynarodowe przewozy osób autokarami oraz obowiązki wobec pasażerów.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "49.41.Z"
+  },
+  {
+    "id": "eval_transport_23",
+    "title": "Nowelizacja zasad odpowiedzialności przewoźnika za ładunek",
+    "content": "Granice odpowiedzialności przewoźnika drogowego za utratę lub uszkodzenie przewożonego towaru.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "52.29.C"
+  },
+  {
+    "id": "eval_transport_24",
+    "title": "Projekt ustawy o organizacji dostaw towarów w miastach",
+    "content": "Strefy i okna czasowe dostaw dla pojazdów dostawczych oraz zasady logistyki miejskiej.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "52.29.C"
+  },
+  {
+    "id": "eval_transport_25",
+    "title": "Rozporządzenie w sprawie przeładunku i składowania kontenerów",
+    "content": "Wymagania dla terminali kontenerowych obsługujących przeładunek towarów w transporcie multimodalnym.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "52.10.B"
+  },
+  {
+    "id": "eval_transport_26",
+    "title": "Ustawa o przejazdach pojazdów nienormatywnych",
+    "content": "Zezwolenia na przejazd pojazdów ponadnormatywnych oraz opłaty za korzystanie z dróg publicznych.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "49.41.Z"
+  },
+  {
+    "id": "eval_transport_27",
+    "title": "Nowelizacja zasad badań technicznych pojazdów",
+    "content": "Organizacja stacji kontroli pojazdów oraz zakres okresowych badań technicznych samochodów ciężarowych.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "49.41.Z"
+  },
+  {
+    "id": "eval_transport_28",
+    "title": "Projekt ustawy o czasie pracy maszynistów",
+    "content": "Normy czasu prowadzenia pociągu i okresy odpoczynku maszynistów u przewoźników kolejowych.",
+    "expected_category": "REG_TRANSPORT",
+    "expected_pkd": "49.20.Z"
   }
 ]

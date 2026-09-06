@@ -55,6 +55,7 @@ def clustering_service(embedder) -> ClusteringService:
     return ClusteringService(embedder=embedder)
 
 
+@pytest.mark.model
 def test_cluster_deduplication(clustering_service: ClusteringService) -> None:
     docs = [
         DocumentItem(
@@ -82,6 +83,7 @@ def test_cluster_deduplication(clustering_service: ClusteringService) -> None:
     assert response.exact_duplicates_removed == 1  # d2 to przedruk d1 znak w znak
 
 
+@pytest.mark.model
 def test_wynik_nie_zalezy_od_kolejnosci_wejscia(clustering_service: ClusteringService) -> None:
     """Zachłanne przypisanie do pierwszego dokumentu dawało tu inny podział po odwróceniu
     listy. Aglomeracja łączy globalnie najpodobniejszą parę, więc podział jest ten sam."""
@@ -232,3 +234,17 @@ def test_identyfikator_klastra_stabilny_dla_tego_samego_skladu() -> None:
     )
 
     assert [g.cluster_id for g in pierwszy.clusters] == [g.cluster_id for g in drugi.clusters]
+
+
+def test_klastrowanie_jednego_dokumentu_jest_dobrze_okreslone() -> None:
+    """Jeden dokument to jeden klaster o jednym członku i zerowej redukcji."""
+    embedder = _StubEmbedder(vectors={DEPESZA: [1.0, 0.0, 0.0]})
+    response = ClusteringService(embedder=embedder).cluster_documents(
+        ClusterRequest(documents=[DocumentItem(id="d1", content=DEPESZA)])
+    )
+
+    assert len(response.clusters) == 1
+    assert response.clusters[0].member_document_ids == ["d1"]
+    assert response.total_processed == 1
+    assert response.reduction_rate == 0.0
+    assert response.exact_duplicates_removed == 0

@@ -40,6 +40,23 @@ class SilenceRadarService:
             )
 
         expected = float(statistics.median(peers))
+
+        if expected <= 0.0:
+            # Mediana zerowa znaczy, że akty porównywalne też nie miały pokrycia. Brak wzmianek
+            # jest wtedy normą, a nie ciszą wokół tego aktu — bez oczekiwania nie ma czego
+            # z czym porównać. Bez tego warunku `actual <= 0 * ANOMALY_RATIO` było prawdziwe
+            # dla każdego aktu bez wzmianek i radar zgłaszał anomalię z medianą 0,0.
+            return SilenceRadarResponse(
+                expected_mentions=0.0,
+                silence_gap=None,
+                is_anomaly=False,
+                explanation=(
+                    f"Mediana pokrycia {len(peers)} aktów porównywalnych wynosi zero — akty "
+                    "tego rodzaju nie są relacjonowane w ogóle, więc brak wzmianek nie jest "
+                    "anomalią. Wykrycie ciszy wymaga aktów porównywalnych z realnym pokryciem."
+                ),
+            )
+
         gap = max(0.0, expected - request.actual_media_mentions)
         is_anomaly = (
             request.relevance_score >= MIN_RELEVANCE

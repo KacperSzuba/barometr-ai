@@ -1,5 +1,7 @@
 """Endpoint analizy framingu medialnego (F3)."""
 
+import asyncio
+
 from fastapi import APIRouter
 
 from barometr_ai.domain.enterprise_models import FramingAnalysisRequest, FramingAnalysisResponse
@@ -14,4 +16,4 @@ router = APIRouter(tags=["Framing"])
     summary="Analiza ramy narracyjnej w redakcjach",
 )
 async def analyze_framing(request: FramingAnalysisRequest) -> FramingAnalysisResponse:
-    return StakeholderFramingService.analyze_framing(request)
+    return await asyncio.to_thread(StakeholderFramingService.analyze_framing, request)

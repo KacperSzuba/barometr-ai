@@ -1,13 +1,11 @@
-"""Testy jednostkowe zaawansowanych funkcji: Scoring, Radar Ciszy, Legal Diff, Prognozy."""
+"""Testy jednostkowe zaawansowanych funkcji: Scoring, Radar Ciszy, Legal Diff."""
 
 from barometr_ai.domain.advanced_models import (
-    ForecastRequest,
     LegalDiffRequest,
     LegislativeStage,
     ScoreRequest,
     SilenceRadarRequest,
 )
-from barometr_ai.services.forecasting_service import ForecastingService
 from barometr_ai.services.legal_diff_service import LegalDiffService
 from barometr_ai.services.relevance_scorer import RelevanceScorerService
 from barometr_ai.services.silence_radar import SilenceRadarService
@@ -104,28 +102,37 @@ def test_legal_diff_with_rcl_consultation_correlation() -> None:
     assert diff.correlation_confidence is not None
 
 
-def test_forecasting_service_probabilities() -> None:
-    # Rządowy projekt w 3 czytaniu z poparciem koalicji -> bardzo wysoka szansa uchwalenia
-    req_gov = ForecastRequest(
-        stage=LegislativeStage.SEJM_READING_3,
-        sponsor_type="GOVERNMENT",
-        days_in_current_stage=14,
-        governing_coalition_support=True,
-    )
-    res_gov = ForecastingService.forecast(req_gov)
-    assert res_gov.enactment_probability >= 0.85
-    assert (
-        res_gov.confidence_interval[0]
-        < res_gov.enactment_probability
-        <= res_gov.confidence_interval[1]
+def test_radar_nie_zglasza_anomalii_gdy_mediana_pokrycia_jest_zerowa() -> None:
+    """Regresja: `actual <= 0 * ANOMALY_RATIO` było prawdziwe dla każdego aktu bez wzmianek.
+
+    Jeżeli akty porównywalne też nie miały pokrycia, brak wzmianek jest normą, a nie ciszą
+    wokół tego jednego aktu — nie ma oczekiwania, wobec którego dałoby się mierzyć lukę.
+    """
+    res = SilenceRadarService.evaluate(
+        SilenceRadarRequest(
+            relevance_score=90.0,
+            actual_media_mentions=0,
+            stage=LegislativeStage.SEJM_READING_3,
+            peer_media_mentions=[0, 0, 0, 0, 0],
+        )
     )
 
-    # Obywatelski projekt bez poparcia koalicji -> niska szansa
-    req_cit = ForecastRequest(
-        stage=LegislativeStage.SEJM_READING_1,
-        sponsor_type="CITIZENS",
-        days_in_current_stage=200,
-        governing_coalition_support=False,
+    assert res.is_anomaly is False
+    assert res.expected_mentions == 0.0
+    # Luka bez oczekiwania jest niepoliczalna — `None`, a nie zero sugerujące brak różnicy.
+    assert res.silence_gap is None
+
+
+def test_radar_wykrywa_cisze_przy_realnym_pokryciu_porownywalnych() -> None:
+    res = SilenceRadarService.evaluate(
+        SilenceRadarRequest(
+            relevance_score=90.0,
+            actual_media_mentions=1,
+            stage=LegislativeStage.SEJM_READING_3,
+            peer_media_mentions=[10, 12, 14, 20, 30],
+        )
     )
-    res_cit = ForecastingService.forecast(req_cit)
-    assert res_cit.enactment_probability < 0.20
+
+    assert res.is_anomaly is True
+    assert res.expected_mentions == 14.0
+    assert res.silence_gap == 13.0

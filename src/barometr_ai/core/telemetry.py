@@ -122,13 +122,18 @@ def instrument_fastapi_app(app: Any) -> None:
 
 
 def flush_telemetry() -> None:
-    """Wypycha bufor eksportu. Bez collectora nie robi nic kosztownego."""
+    """Wypycha bufory eksportu śladów i metryk. Bez collectora nie robi nic kosztownego.
+
+    Metryki muszą być wypychane osobno: `PeriodicExportingMetricReader` eksportuje w swoim
+    interwale, więc zużycie tokenów zarejestrowane tuż przed zatrzymaniem procesu przepadłoby
+    razem z nim — a to właśnie te ostatnie wywołania modelu są najdroższe do odtworzenia.
+    """
     if not _export_enabled:
         return
-    provider = trace.get_tracer_provider()
-    force_flush = getattr(provider, "force_flush", None)
-    if callable(force_flush):
-        force_flush(timeout_millis=2000)
+    for provider in (trace.get_tracer_provider(), metrics.get_meter_provider()):
+        force_flush = getattr(provider, "force_flush", None)
+        if callable(force_flush):
+            force_flush(timeout_millis=2000)
 
 
 def _signal_endpoint(base: str, signal: str) -> str:

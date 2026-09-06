@@ -17,6 +17,7 @@ from httpx import ASGITransport, AsyncClient
 
 from barometr_ai.adapters.fastembed_adapter import FastEmbedAdapter
 from barometr_ai.adapters.heuristic_llm_adapter import HeuristicLLMAdapter
+from barometr_ai.adapters.mock_embedder import MockLocalEmbedder
 from barometr_ai.core.config import Settings
 from barometr_ai.main import create_app
 from barometr_ai.ports.embedder import EmbedderPort
@@ -41,9 +42,25 @@ def settings() -> Settings:
     return Settings(_env_file=None)
 
 
+@pytest.fixture
+def mock_embedder() -> EmbedderPort:
+    """Atrapa embeddera — wektory z funkcji skrótu, zero sieci.
+
+    Wolno jej używać wyłącznie tam, gdzie test sprawdza ścieżkę sterowania (top-N, budżet,
+    kolejność, powody pominięcia), a nie jakość podobieństwa. Testy jakościowe biorą fixture
+    `embedder` i marker `model`.
+    """
+    settings = Settings(_env_file=None)
+    return MockLocalEmbedder(dimension=settings.embedding_dimension)
+
+
 @pytest.fixture(scope="session")
 def embedder() -> EmbedderPort:
-    """Jeden załadowany model na całą sesję testową — ładowanie ONNX jest kosztowne."""
+    """Jeden załadowany model na całą sesję testową — ładowanie ONNX jest kosztowne.
+
+    Pobiera wagi z HuggingFace, więc każdy test korzystający z tej fixture musi nieść
+    marker `model`.
+    """
     settings = Settings(_env_file=None)
     return FastEmbedAdapter(
         settings.embedding_model_name,

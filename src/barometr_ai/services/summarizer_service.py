@@ -3,6 +3,7 @@
 import logging
 
 from barometr_ai.core.config import Settings
+from barometr_ai.core.telemetry import record_tokens
 from barometr_ai.domain.llm import (
     SECTION_LABELS,
     CitedSegment,
@@ -19,7 +20,7 @@ from barometr_ai.services.prompt_registry import (
     build_rejection_feedback,
 )
 from barometr_ai.services.provenance_service import ProvenanceService
-from barometr_ai.services.section_parser import parse_sections
+from barometr_ai.services.section_parser import markers_seen, parse_sections
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +33,11 @@ _SINGULAR_SECTIONS = (
 
 #: Zgrubny narzut promptu w tokenach, doliczany do bramki budżetowej przed wywołaniem.
 _PROMPT_OVERHEAD_TOKENS = 800
+
+#: Powód odrzucenia sekcji, której znacznika w ogóle nie było w odpowiedzi. Prompt wymaga
+#: wszystkich czterech znaczników i słowa BRAK_PODSTAWY pod pustymi, więc brak znacznika
+#: zawsze znaczy złamanie formatu.
+MISSING_MARKER_REASON = "brak znacznika sekcji w odpowiedzi modelu"
 
 
 class SummarizerService:
@@ -92,12 +98,29 @@ class SummarizerService:
             self._cost_tracker.record_usage(
                 client_id=client_id, tokens=completion.total_tokens, enforce=False
             )
+            # Licznik budżetu pilnuje limitu, metryka zasila rozliczenie per klient. To dwie
+            # różne rzeczy: pierwsza żyje dobę i zeruje się o północy, druga jest szeregiem
+            # czasowym w collectorze. Bez tego wywołania metryka nigdy nie powstawała, mimo
+            # że `X-Client-Id` był przyjmowany i przekazywany aż tutaj.
+            record_tokens(
+                client_id=client_id,
+                tokens=completion.total_tokens,
+                model_version=completion.model_version,
+            )
 
             sections = parse_sections(completion.segments)
+            seen = markers_seen(completion.segments)
             rejections = []
 
             for section in SummarySection:
                 if section in resolved:
+                    continue
+                if section not in seen:
+                    # Brak znacznika to awaria formatu, nie deklaracja braku podstawy.
+                    # Bez tego rozróżnienia odpowiedź bez żadnego znacznika dawała puste
+                    # streszczenie z zerem odrzuceń — sukces pozorny, dokładnie ta klasa
+                    # awarii, przed którą broni walidator proweniencji.
+                    rejections.append((section, MISSING_MARKER_REASON))
                     continue
                 statements, reason = self._ground_section(
                     sections[section], document_id=request.document_id, source_text=source_text

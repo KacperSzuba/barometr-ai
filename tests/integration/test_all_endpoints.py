@@ -11,6 +11,7 @@ async def test_health_endpoint(async_client):
 
 
 @pytest.mark.asyncio
+@pytest.mark.model
 async def test_embed_endpoint(async_client):
     payload = {"texts": ["Ustawa o podatku dochodowym", "Nowelizacja kodeksu pracy"]}
     res = await async_client.post("/v1/embed", json=payload)
@@ -22,6 +23,7 @@ async def test_embed_endpoint(async_client):
 
 
 @pytest.mark.asyncio
+@pytest.mark.model
 async def test_classify_endpoint(async_client):
     payload = {
         "title": "Projekt ustawy o planowaniu i zagospodarowaniu przestrzennym",
@@ -36,6 +38,7 @@ async def test_classify_endpoint(async_client):
 
 
 @pytest.mark.asyncio
+@pytest.mark.model
 async def test_cluster_endpoint(async_client):
     payload = {
         "documents": [
@@ -78,6 +81,7 @@ async def test_summarize_endpoint_with_provenance(async_client):
 
 
 @pytest.mark.asyncio
+@pytest.mark.model
 async def test_pipeline_endpoint(async_client):
     """Kaskada w jednym żądaniu: cztery dokumenty wchodzą, model widzi jeden klaster."""
     payload = {
@@ -126,3 +130,23 @@ async def test_pipeline_endpoint(async_client):
     assert len(wybrany["member_document_ids"]) == 2
     # Scoring musi być wytłumaczalny — „dlaczego to widzisz”.
     assert wybrany["relevance"]["explanations"]
+
+
+async def test_usage_endpoint_rozlicza_klienta_z_naglowka(async_client):
+    """Regresja: `X-Client-Id` był przyjmowany i doliczany, ale nie miał jak wyjść na zewnątrz."""
+    res = await async_client.get("/v1/usage", headers={"X-Client-Id": "klient_testowy"})
+
+    assert res.status_code == 200
+    body = res.json()
+    assert body["client_id"] == "klient_testowy"
+    assert body["client_tokens_today"] >= 0
+    assert body["daily_budget"] >= 1
+    # Odbiorca musi wiedzieć, czy liczba obejmuje całe wdrożenie, czy jeden proces.
+    assert body["budget_scope"] in {"process", "shared"}
+
+
+async def test_usage_endpoint_bez_naglowka_uzywa_kubla_unknown(async_client):
+    res = await async_client.get("/v1/usage")
+
+    assert res.status_code == 200
+    assert res.json()["client_id"] == "unknown"

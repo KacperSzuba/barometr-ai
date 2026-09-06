@@ -1,5 +1,7 @@
 """Endpoint ekstrakcji encji NER i relacji (F2)."""
 
+import asyncio
+
 from fastapi import APIRouter
 
 from barometr_ai.domain.enterprise_models import NERRequest, NERResponse
@@ -10,4 +12,4 @@ router = APIRouter(tags=["NER"])
 
 @router.post("/ner", response_model=NERResponse, summary="Wyodrębnij osoby, instytucje i relacje")
 async def extract_entities(request: NERRequest) -> NERResponse:
-    return EntityExtractorService.extract_entities(request)
+    return await asyncio.to_thread(EntityExtractorService.extract_entities, request)

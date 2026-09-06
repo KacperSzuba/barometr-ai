@@ -1,5 +1,6 @@
 """Health and readiness probe endpoints."""
 
+import asyncio
 from typing import Any
 
 from fastapi import APIRouter, Response, status
@@ -36,7 +37,10 @@ async def readiness_check(response: Response) -> dict[str, Any]:
     ready = True
 
     try:
-        embedder = get_embedder()
+        # Ładowanie ONNX jest CPU-bound i przy zimnym cache trwa kilkanaście sekund. Sonda
+        # wołana wprost w pętli zdarzeń zablokowałaby na ten czas cały proces — dokładnie
+        # wtedy, gdy orkiestrator odpytuje najczęściej. Lifespan robi to tak samo.
+        embedder = await asyncio.to_thread(get_embedder)
         components["embedder"] = {
             "ready": True,
             "model": embedder.model_name,

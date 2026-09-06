@@ -49,7 +49,13 @@ _RESERVED_LOG_ATTRS = frozenset(
 
 
 class TraceContextFilter(logging.Filter):
-    """Dokleja identyfikatory śladu do rekordu, żeby formatter nie musiał znać OTel."""
+    """Dokleja identyfikatory śladu do rekordu, żeby formatter nie musiał znać OTel.
+
+    Filtr musi wisieć na **handlerze**, nie na loggerze. Logger stosuje swoje filtry wyłącznie
+    do rekordów zalogowanych bezpośrednio na nim; rekordy propagowane z loggerów potomnych
+    trafiają prosto do jego handlerów, z pominięciem filtrów. Ponieważ cały kod aplikacji woła
+    `logging.getLogger(__name__)`, filtr na rootcie nie zadziałałby dla żadnej linii logu.
+    """
 
     @override
     def filter(self, record: logging.LogRecord) -> bool:
@@ -86,10 +92,12 @@ def setup_logging() -> None:
     log_level = getattr(logging, settings.log_level.upper(), logging.INFO)
     handler = logging.StreamHandler(sys.stdout)
     handler.setFormatter(JsonLogFormatter())
+    # Na handlerze, nie na loggerze — patrz docstring TraceContextFilter.
+    handler.addFilter(TraceContextFilter())
 
     root = logging.getLogger()
     root.handlers.clear()
+    # Filtr z poprzedniej konfiguracji zostałby na rootcie i nic by nie robił poza myleniem.
+    root.filters = [item for item in root.filters if not isinstance(item, TraceContextFilter)]
     root.addHandler(handler)
     root.setLevel(log_level)
-    if not any(isinstance(item, TraceContextFilter) for item in root.filters):
-        root.addFilter(TraceContextFilter())

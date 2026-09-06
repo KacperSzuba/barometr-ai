@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends build-essential
 
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
-    # Obraz ma już Pythona 3.13; uv nie ma dociągać własnego interpretera.
+    # Obraz bazowy niesie już interpreter; uv nie ma dociągać własnego.
     UV_PYTHON_DOWNLOADS=never
 
 COPY pyproject.toml uv.lock README.md ./
@@ -48,4 +48,8 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=120s --retries=3 \
     CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/v1/ready', timeout=4).status==200 else 1)" || exit 1
 
-CMD ["uvicorn", "barometr_ai.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+# --workers 1 odpowiada domyślnemu TOKEN_BUDGET_BACKEND=memory: licznik budżetu żyje wtedy
+# w pamięci procesu, więc N workerów dałoby limit N × DAILY_TOKEN_BUDGET. Żeby podnieść tę
+# liczbę, przestaw backend na `redis` (obraz trzeba wtedy zbudować z `--extra redis`) —
+# konfiguracja WORKERS>1 na liczniku w pamięci jest odrzucana przy starcie.
+CMD ["uvicorn", "barometr_ai.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]

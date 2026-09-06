@@ -5,23 +5,24 @@ from pathlib import Path
 
 import pytest
 
-from barometr_ai.services.classifier_service import ClassifierService
+from barometr_ai.services.classifier_service import REGULATORY_TAXONOMY, ClassifierService
+
+GOLDEN_SET_PATH = Path(__file__).parent / "golden_set.json"
+BASELINE_PATH = Path(__file__).parent / "baseline.json"
+
+#: Próg absolutny: poniżej tej celności klasyfikator nie nadaje się do produkcji,
+#: niezależnie od tego, czy poprzedni pomiar był lepszy czy gorszy.
+MIN_ACCURACY = 0.75
+
+#: Maksymalny dopuszczalny spadek względem ostatniego zapisanego pomiaru, w punktach
+#: procentowych. Wartość z AGENTS.md §3.1 („spadek > 3 pkt blokuje pipeline").
+MAX_REGRESSION_POINTS = 3.0
 
 
-@pytest.fixture(scope="module")
-def classifier(embedder) -> ClassifierService:
-    return ClassifierService(embedder=embedder)
-
-
-def test_golden_set_classification_benchmark(classifier: ClassifierService) -> None:
-    """Sprawdza dokładność klasyfikacji na zbiorze referencyjnym (Golden Set). Cel: Accuracy >= 0.75."""
-    golden_set_path = Path(__file__).parent / "golden_set.json"
-    with open(golden_set_path, encoding="utf-8") as f:
-        cases = json.load(f)
-
+def _measure(classifier: ClassifierService, cases: list[dict[str, str]]) -> tuple[float, float]:
+    """Zwraca (celność tematów, celność PKD) na zbiorze referencyjnym."""
     correct_topics = 0
     correct_pkd = 0
-    total = len(cases)
 
     for item in cases:
         res = classifier.classify(title=item["title"], content=item["content"])
@@ -30,13 +31,96 @@ def test_golden_set_classification_benchmark(classifier: ClassifierService) -> N
         if item["expected_pkd"] in res.primary_pkd:
             correct_pkd += 1
 
-    accuracy_topics = correct_topics / total
-    accuracy_pkd = correct_pkd / total
+    total = len(cases)
+    return correct_topics / total, correct_pkd / total
+
+
+@pytest.fixture(scope="module")
+def classifier(embedder) -> ClassifierService:
+    return ClassifierService(embedder=embedder)
+
+
+@pytest.fixture(scope="module")
+def golden_cases() -> list[dict[str, str]]:
+    with open(GOLDEN_SET_PATH, encoding="utf-8") as f:
+        cases: list[dict[str, str]] = json.load(f)
+    return cases
+
+
+#: Rozmiar zbioru referencyjnego wymagany przez AGENTS.md §3.1. Poniżej tej liczby próg
+#: regresji 3 pkt przestaje cokolwiek znaczyć: przy N=4 jeden błąd to skok o 25 pkt.
+MIN_GOLDEN_SET_SIZE = 200
+
+
+def test_golden_set_ma_wymagany_rozmiar(golden_cases: list[dict[str, str]]) -> None:
+    assert len(golden_cases) >= MIN_GOLDEN_SET_SIZE
+
+
+def test_golden_set_pokrywa_cala_taksonomie(golden_cases: list[dict[str, str]]) -> None:
+    """Zbiór, w którym brakuje kategorii, nie mierzy jej regresji — a wygląda, jakby mierzył."""
+    taxonomy = {area.code: set(area.pkd_codes) for area in REGULATORY_TAXONOMY}
+    covered = {case["expected_category"] for case in golden_cases}
+    assert covered == set(taxonomy), f"kategorie bez przypadku: {set(taxonomy) - covered}"
+
+    # Oczekiwany kod PKD spoza taksonomii danej kategorii jest nieosiągalny — taki przypadek
+    # zaniżałby metrykę bez względu na jakość modelu.
+    for case in golden_cases:
+        assert case["expected_pkd"] in taxonomy[case["expected_category"]], case["id"]
+
+
+def test_golden_set_nie_ma_powtorzen(golden_cases: list[dict[str, str]]) -> None:
+    """Powtórzony przypadek liczy się w metryce dwa razy i zawyża wagę jednego zdania."""
+    ids = [case["id"] for case in golden_cases]
+    titles = [case["title"] for case in golden_cases]
+    assert len(set(ids)) == len(ids)
+    assert len(set(titles)) == len(titles)
+
+
+@pytest.mark.model
+def test_golden_set_classification_benchmark(
+    classifier: ClassifierService, golden_cases: list[dict[str, str]]
+) -> None:
+    """Celność klasyfikacji na zbiorze referencyjnym: próg absolutny i próg regresji."""
+    accuracy_topics, accuracy_pkd = _measure(classifier, golden_cases)
 
     print(
-        f"\n[Golden Set] Celność tematów: {accuracy_topics * 100:.1f}%, Celność PKD: {accuracy_pkd * 100:.1f}%"
+        f"\n[Golden Set] N={len(golden_cases)}, celność tematów: {accuracy_topics * 100:.1f}%, "
+        f"celność PKD: {accuracy_pkd * 100:.1f}%"
     )
 
-    # Wymóg jakościowy: celność nie może spaść poniżej 75%
-    assert accuracy_topics >= 0.75
-    assert accuracy_pkd >= 0.75
+    assert accuracy_topics >= MIN_ACCURACY
+    assert accuracy_pkd >= MIN_ACCURACY
+
+
+@pytest.mark.model
+def test_brak_regresji_wobec_zapisanego_pomiaru(
+    classifier: ClassifierService, golden_cases: list[dict[str, str]]
+) -> None:
+    """Blokuje spadek celności o więcej niż `MAX_REGRESSION_POINTS` wobec baseline'u.
+
+    Baseline musi pochodzić z faktycznego przebiegu — nie jest wpisywany ręcznie. Dopóki go
+    nie zapisano, test nie udaje, że mierzy regresję, tylko jawnie ją pomija (AGENTS.md §4:
+    brak pomiaru to `None` z powodem, nie prawdopodobna liczba).
+    """
+    with open(BASELINE_PATH, encoding="utf-8") as f:
+        baseline = json.load(f)
+
+    if baseline.get("topics_accuracy") is None or baseline.get("pkd_accuracy") is None:
+        pytest.skip(
+            "Brak zapisanego baseline'u celności. Zapisz go z realnego przebiegu: "
+            "`make eval-baseline`, a wynikowy tests/evaluation/baseline.json zacommituj."
+        )
+
+    accuracy_topics, accuracy_pkd = _measure(classifier, golden_cases)
+
+    drop_topics = (baseline["topics_accuracy"] - accuracy_topics) * 100
+    drop_pkd = (baseline["pkd_accuracy"] - accuracy_pkd) * 100
+
+    assert drop_topics <= MAX_REGRESSION_POINTS, (
+        f"Celność tematów spadła o {drop_topics:.1f} pkt wobec baseline'u "
+        f"({baseline['topics_accuracy'] * 100:.1f}% → {accuracy_topics * 100:.1f}%)."
+    )
+    assert drop_pkd <= MAX_REGRESSION_POINTS, (
+        f"Celność PKD spadła o {drop_pkd:.1f} pkt wobec baseline'u "
+        f"({baseline['pkd_accuracy'] * 100:.1f}% → {accuracy_pkd * 100:.1f}%)."
+    )

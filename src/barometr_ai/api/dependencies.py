@@ -9,9 +9,11 @@ from fastapi import Depends, Header
 from barometr_ai.adapters.anthropic_llm_adapter import AnthropicLLMAdapter
 from barometr_ai.adapters.fastembed_adapter import FastEmbedAdapter
 from barometr_ai.adapters.heuristic_llm_adapter import HeuristicLLMAdapter
+from barometr_ai.adapters.in_memory_budget_store import InMemoryTokenBudgetStore
 from barometr_ai.core.config import Settings, get_settings
 from barometr_ai.ports.embedder import EmbedderPort
 from barometr_ai.ports.llm import LLMPort
+from barometr_ai.ports.token_budget import TokenBudgetStorePort
 from barometr_ai.services.cascade_service import CascadeService
 from barometr_ai.services.classifier_service import ClassifierService
 from barometr_ai.services.clustering_service import ClusteringService
@@ -74,11 +76,31 @@ def get_novelty_detector() -> NoveltyDetectorService:
 
 
 @lru_cache(maxsize=1)
+def get_token_budget_store() -> TokenBudgetStorePort:
+    """Magazyn liczników budżetu. `memory` jest domyślny; `redis` czyni licznik współdzielonym.
+
+    Import klienta Redisa jest leniwy, bo `redis` to opcjonalny extra — instalacja bez niego
+    nie może wywracać startu serwisu skonfigurowanego na licznik w pamięci.
+    """
+    settings = get_settings()
+    if settings.token_budget_backend == "memory":
+        return InMemoryTokenBudgetStore()
+
+    from redis import Redis
+
+    from barometr_ai.adapters.redis_budget_store import RedisTokenBudgetStore
+
+    logger.info("Licznik budżetu tokenów: Redis — limit obowiązuje wspólnie dla wszystkich replik.")
+    return RedisTokenBudgetStore(Redis.from_url(settings.redis_url))
+
+
+@lru_cache(maxsize=1)
 def get_cost_tracker() -> CostTrackerService:
     settings = get_settings()
     return CostTrackerService(
         daily_budget=settings.daily_token_budget,
         alert_threshold=settings.cost_alert_threshold,
+        store=get_token_budget_store(),
     )
 
 
@@ -112,6 +134,7 @@ async def get_client_id(
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 EmbedderDep = Annotated[EmbedderPort, Depends(get_embedder)]
 SummarizerDep = Annotated[SummarizerService, Depends(get_summarizer_service)]
+CostTrackerDep = Annotated[CostTrackerService, Depends(get_cost_tracker)]
 ClientIdDep = Annotated[str, Depends(get_client_id)]
 
 
@@ -123,6 +146,7 @@ def reset_dependency_caches() -> None:
         get_classifier_service,
         get_clustering_service,
         get_novelty_detector,
+        get_token_budget_store,
         get_cost_tracker,
         get_summarizer_service,
         get_cascade_service,

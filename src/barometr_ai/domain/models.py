@@ -1,5 +1,7 @@
 """Contracts and DTOs for AI endpoints."""
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field
 
 from barometr_ai.domain.provenance import GroundedStatement
@@ -60,7 +62,12 @@ class DocumentItem(BaseDTO):
 
 
 class ClusterRequest(BaseDTO):
-    documents: list[DocumentItem] = Field(..., min_length=2)
+    #: `min_length=1`, nie 2: klastrowanie jednego dokumentu jest dobrze określone (jeden
+    #: klaster, jeden członek, zerowa redukcja), a próg 2 wywracał kaskadę. `PipelineRequest`
+    #: przyjmuje jeden dokument, więc taki wsad docierał do `ClusterRequest` budowanego
+    #: wewnątrz serwisu i wywalał `ValidationError` poza kontraktem HTTP — czyli 500 zamiast
+    #: poprawnego wyniku dla żądania, które kontrakt kaskady wprost dopuszcza.
+    documents: list[DocumentItem] = Field(..., min_length=1)
     threshold: float = Field(default=0.82, ge=0.0, le=1.0)
 
 
@@ -126,3 +133,30 @@ class SummarizeResponse(BaseDTO):
     model_version: str
     prompt_version: str
     total_tokens: int
+
+
+# --- /v1/usage ---
+class UsageResponse(BaseDTO):
+    """Rozliczenie zużycia tokenów dla klienta z nagłówka `X-Client-Id` (wymóg F1).
+
+    Wszystkie liczby pochodzą z licznika budżetu; żadna nie jest szacunkiem. Zakres licznika
+    jest podany wprost, bo przy magazynie w pamięci procesu wynik opisuje jeden proces, a nie
+    cały serwis — odbiorca musi wiedzieć, którą z tych dwóch liczb czyta.
+    """
+
+    client_id: str = Field(..., description="Klient z nagłówka X-Client-Id; `unknown` gdy brak")
+    client_tokens_today: int = Field(..., ge=0, description="Tokeny wydane dziś przez tego klienta")
+    service_tokens_today: int = Field(..., ge=0, description="Tokeny wydane dziś przez cały serwis")
+    daily_budget: int = Field(..., ge=1, description="Dzienny limit tokenów serwisu")
+    usage_ratio: float = Field(
+        ..., ge=0.0, description="service_tokens_today / daily_budget; może przekroczyć 1.0"
+    )
+    alert_threshold: float = Field(..., gt=0.0, le=1.0)
+    alert_active: bool = Field(..., description="True gdy usage_ratio osiągnął próg alertu")
+    budget_scope: Literal["process", "shared"] = Field(
+        ...,
+        description=(
+            "process = licznik w pamięci jednego workera, liczby nie obejmują pozostałych "
+            "replik. shared = licznik wspólny dla całego wdrożenia."
+        ),
+    )

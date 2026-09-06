@@ -2,36 +2,46 @@
 
 import datetime
 
+from barometr_ai.adapters.in_memory_budget_store import InMemoryTokenBudgetStore
 from barometr_ai.core.exceptions import BudgetExceededError
+from barometr_ai.ports.token_budget import TokenBudgetStorePort
 
 
 class CostTrackerService:
     """Zarządza dziennymi limitami tokenów oraz rozliczeniem per klient.
 
-    OGRANICZENIE: licznik żyje w pamięci procesu. Przy `uvicorn --workers N` faktyczny limit
-    to N-krotność deklarowanego, a restart zeruje stan. Wdrożenie wielo-workerowe wymaga
-    przeniesienia licznika do współdzielonego magazynu (Redis albo backend) — patrz P0-5
-    w audycie. Kontrakt metod jest już pod to przygotowany.
+    Stan liczników leży za portem `TokenBudgetStorePort`. Domyślny magazyn trzyma je w pamięci
+    procesu — wystarczający dla pojedynczego workera, ale przy N procesach dający N-krotność
+    deklarowanego limitu. `RedisTokenBudgetStore` czyni licznik współdzielonym i dopiero on
+    pozwala skalować serwis poziomo.
+
+    Bramka budżetu jest **domykana po doliczeniu**, nie przed: `record_usage` najpierw dolicza
+    atomowo, a dopiero potem sprawdza wynik i w razie przekroczenia cofa zapis. Kolejność
+    „sprawdź, potem dolicz" byłaby wyścigiem — dwa procesy odczytałyby ten sam stan sprzed
+    zapisu i oba uznałyby, że budżet starcza.
     """
 
-    def __init__(self, daily_budget: int = 1_000_000, alert_threshold: float = 0.8) -> None:
+    def __init__(
+        self,
+        daily_budget: int = 1_000_000,
+        alert_threshold: float = 0.8,
+        store: TokenBudgetStorePort | None = None,
+    ) -> None:
         self.daily_budget = daily_budget
         self.alert_threshold = alert_threshold
-        self._current_date = datetime.datetime.now(datetime.UTC).date()
-        self._tokens_used_today = 0
-        self._client_usage: dict[str, int] = {}
+        self._store: TokenBudgetStorePort = store or InMemoryTokenBudgetStore()
 
-    def _reset_if_new_day(self) -> None:
-        today = datetime.datetime.now(datetime.UTC).date()
-        if today != self._current_date:
-            self._current_date = today
-            self._tokens_used_today = 0
-            self._client_usage.clear()
+    @staticmethod
+    def _today() -> datetime.date:
+        return datetime.datetime.now(datetime.UTC).date()
 
     def can_afford(self, tokens: int) -> bool:
-        """Czy podana liczba tokenów mieści się jeszcze w dzisiejszym budżecie."""
-        self._reset_if_new_day()
-        return self._tokens_used_today + tokens <= self.daily_budget
+        """Czy podana liczba tokenów mieści się jeszcze w dzisiejszym budżecie.
+
+        Bramka doradcza: między tym odczytem a doliczeniem inny proces może wydać własne
+        tokeny. Twardego limitu pilnuje `record_usage`, które dolicza atomowo.
+        """
+        return self._store.usage_today(self._today()) + tokens <= self.daily_budget
 
     def ensure_capacity(self, tokens: int) -> None:
         """Bramka przed wywołaniem modelu. Orkiestrator top-N woła `can_afford` i zawęża N."""
@@ -39,7 +49,7 @@ class CostTrackerService:
             raise BudgetExceededError(
                 f"Przekroczono dzienny limit tokenów ({self.daily_budget}).",
                 details={
-                    "used": self._tokens_used_today,
+                    "used": self._store.usage_today(self._today()),
                     "requested": tokens,
                     "budget": self.daily_budget,
                 },
@@ -54,17 +64,25 @@ class CostTrackerService:
         się cofnąć, więc musi trafić do licznika nawet gdy przekracza budżet. Kolejne
         wywołanie zablokuje wtedy `ensure_capacity`.
         """
-        self._reset_if_new_day()
+        day = self._today()
+        total = self._store.add_usage(day, client_id, tokens)
 
-        if enforce:
-            self.ensure_capacity(tokens)
+        if enforce and total > self.daily_budget:
+            # Zapis cofamy dopiero po stwierdzeniu przekroczenia — do tego momentu inne
+            # procesy widzą tokeny jako zajęte, więc nie przepuszczą własnego żądania.
+            self._store.release(day, client_id, tokens)
+            raise BudgetExceededError(
+                f"Przekroczono dzienny limit tokenów ({self.daily_budget}).",
+                details={
+                    "used": total - tokens,
+                    "requested": tokens,
+                    "budget": self.daily_budget,
+                },
+            )
 
-        self._tokens_used_today += tokens
-        self._client_usage[client_id] = self._client_usage.get(client_id, 0) + tokens
-
-        usage_ratio = self._tokens_used_today / self.daily_budget
+        usage_ratio = total / self.daily_budget
         return {
-            "tokens_today": self._tokens_used_today,
+            "tokens_today": total,
             "daily_budget": self.daily_budget,
             "usage_ratio": round(usage_ratio, 3),
             "alert_active": usage_ratio >= self.alert_threshold,
@@ -72,10 +90,8 @@ class CostTrackerService:
 
     def usage_for_client(self, client_id: str) -> int:
         """Zużycie konkretnego klienta — podstawa dashboardu kosztu na klienta z wymogu F1."""
-        self._reset_if_new_day()
-        return self._client_usage.get(client_id, 0)
+        return self._store.usage_for_client(self._today(), client_id)
 
     @property
     def tokens_today(self) -> int:
-        self._reset_if_new_day()
-        return self._tokens_used_today
+        return self._store.usage_today(self._today())

@@ -35,7 +35,7 @@ AKT_ODPADY = (
 def build_cascade(
     embedder, *, daily_budget: int = 1_000_000
 ) -> tuple[CascadeService, CostTrackerService]:
-    """Kaskada na adapterze zastępczym — deterministyczna, bez sieci i bez kosztu."""
+    """Kaskada na atrapie embeddera i adapterze zastępczym — deterministyczna, bez sieci."""
     from barometr_ai.adapters.heuristic_llm_adapter import HeuristicLLMAdapter
 
     settings = Settings(_env_file=None)
@@ -51,10 +51,10 @@ def build_cascade(
     return cascade, cost_tracker
 
 
-async def test_rozmiar_klastra_zasila_scoring(embedder) -> None:
+async def test_rozmiar_klastra_zasila_scoring(mock_embedder) -> None:
     """Sedno kaskady: akt opisany przez wiele redakcji jest istotniejszy niż opisany raz.
     Tej informacji nie ma żaden pojedynczy dokument — wie ją dopiero warstwa L1."""
-    cascade, _ = build_cascade(embedder)
+    cascade, _ = build_cascade(mock_embedder)
 
     docs = [
         # Trzy przedruki tego samego aktu — po deduplikacji jeden klaster o trzech członkach.
@@ -82,9 +82,9 @@ async def test_rozmiar_klastra_zasila_scoring(embedder) -> None:
     assert energia.relevance.total_score > zdrowie.relevance.total_score
 
 
-async def test_top_n_zaweza_wejscie_do_warstwy_platnej(embedder) -> None:
+async def test_top_n_zaweza_wejscie_do_warstwy_platnej(mock_embedder) -> None:
     """Model widzi wyłącznie top-N. Reszta wraca z jawnym powodem, a nie znika."""
-    cascade, _ = build_cascade(embedder)
+    cascade, _ = build_cascade(mock_embedder)
     docs = [
         PipelineDocument(id="a", content=AKT_ENERGIA, stage=LegislativeStage.ENACTED),
         PipelineDocument(id="b", content=AKT_ZDROWIE, stage=LegislativeStage.SEJM_COMMITTEE),
@@ -106,8 +106,8 @@ async def test_top_n_zaweza_wejscie_do_warstwy_platnej(embedder) -> None:
     assert all(c.skip_reason == SKIP_OUTSIDE_TOP_N for c in pominiete)
 
 
-async def test_klastry_posortowane_malejaco_po_istotnosci(embedder) -> None:
-    cascade, _ = build_cascade(embedder)
+async def test_klastry_posortowane_malejaco_po_istotnosci(mock_embedder) -> None:
+    cascade, _ = build_cascade(mock_embedder)
     docs = [
         PipelineDocument(id="niski", content=AKT_ODPADY, stage=LegislativeStage.GOV_WORK),
         PipelineDocument(id="wysoki", content=AKT_ENERGIA, stage=LegislativeStage.ENACTED),
@@ -125,10 +125,10 @@ async def test_klastry_posortowane_malejaco_po_istotnosci(embedder) -> None:
     ]
 
 
-async def test_prog_istotnosci_odcina_przed_top_n(embedder) -> None:
+async def test_prog_istotnosci_odcina_przed_top_n(mock_embedder) -> None:
     """`min_relevance` działa przed miejscem w rankingu — akt na wczesnym etapie nie trafia
     do modelu nawet wtedy, gdy nikt inny nie kandyduje."""
-    cascade, _ = build_cascade(embedder)
+    cascade, _ = build_cascade(mock_embedder)
     docs = [
         PipelineDocument(id="a", content=AKT_ENERGIA, stage=LegislativeStage.ENACTED),
         PipelineDocument(id="b", content=AKT_ODPADY, stage=LegislativeStage.GOV_WORK),
@@ -144,14 +144,14 @@ async def test_prog_istotnosci_odcina_przed_top_n(embedder) -> None:
     assert response.summarized_count == len(response.clusters) - len(odciete)
 
 
-async def test_budzet_zaweza_n_zamiast_wywracac_zadanie(embedder) -> None:
+async def test_budzet_zaweza_n_zamiast_wywracac_zadanie(mock_embedder) -> None:
     """Wyczerpany budżet nie może kończyć się błędem całego żądania: to, co policzone,
     jest poprawnym wynikiem, a reszta wraca z powodem.
 
     Budżet 1800 tokenów mieści dokładnie dwa z trzech streszczeń (jedno kosztuje ok. 830),
     więc test sprawdza faktyczne *zawężenie* N, a nie sytuację, w której nie powstaje nic.
     """
-    cascade, cost_tracker = build_cascade(embedder, daily_budget=1800)
+    cascade, cost_tracker = build_cascade(mock_embedder, daily_budget=1800)
     docs = [
         PipelineDocument(id="a", content=AKT_ENERGIA, stage=LegislativeStage.ENACTED),
         PipelineDocument(id="b", content=AKT_ZDROWIE, stage=LegislativeStage.SENATE),
@@ -174,9 +174,9 @@ async def test_budzet_zaweza_n_zamiast_wywracac_zadanie(embedder) -> None:
     )
 
 
-async def test_zerowy_budzet_nie_wywoluje_modelu(embedder) -> None:
+async def test_zerowy_budzet_nie_wywoluje_modelu(mock_embedder) -> None:
     """Bramka stoi przed wywołaniem, nie po nim — przy zerowym budżecie model nie rusza."""
-    cascade, _ = build_cascade(embedder, daily_budget=1)
+    cascade, _ = build_cascade(mock_embedder, daily_budget=1)
     docs = [
         PipelineDocument(id="a", content=AKT_ENERGIA, stage=LegislativeStage.ENACTED),
         PipelineDocument(id="b", content=AKT_ZDROWIE, stage=LegislativeStage.SENATE),
@@ -191,10 +191,10 @@ async def test_zerowy_budzet_nie_wywoluje_modelu(embedder) -> None:
     assert response.is_generative is False
 
 
-async def test_za_krotki_reprezentant_wraca_z_powodem(embedder) -> None:
+async def test_za_krotki_reprezentant_wraca_z_powodem(mock_embedder) -> None:
     """Kontrakt `SummarizeRequest` wymaga 50 znaków. Krótszy dokument nie może wywracać
     całej kaskady ani cicho znikać."""
-    cascade, _ = build_cascade(embedder)
+    cascade, _ = build_cascade(mock_embedder)
     docs = [
         PipelineDocument(id="krotki", content="Ustawa przyjęta.", stage=LegislativeStage.ENACTED),
         PipelineDocument(id="pelny", content=AKT_ENERGIA, stage=LegislativeStage.ENACTED),
@@ -208,10 +208,10 @@ async def test_za_krotki_reprezentant_wraca_z_powodem(embedder) -> None:
     assert response.summarized_count == 1
 
 
-async def test_kazdy_dokument_jest_rozliczony(embedder) -> None:
+async def test_kazdy_dokument_jest_rozliczony(mock_embedder) -> None:
     """Niezmiennik kaskady: żaden dokument wejściowy nie może zniknąć — albo jest w klastrze
     streszczonym, albo w pominiętym z podanym powodem."""
-    cascade, _ = build_cascade(embedder)
+    cascade, _ = build_cascade(mock_embedder)
     docs = [
         PipelineDocument(id=f"d{i}", content=tresc, stage=LegislativeStage.SEJM_COMMITTEE)
         for i, tresc in enumerate([AKT_ENERGIA, AKT_ZDROWIE, AKT_ODPADY, AKT_ENERGIA.upper()])
@@ -226,8 +226,8 @@ async def test_kazdy_dokument_jest_rozliczony(embedder) -> None:
     )
 
 
-async def test_redukcja_wolumenu_liczona_wobec_wejscia(embedder) -> None:
-    cascade, _ = build_cascade(embedder)
+async def test_redukcja_wolumenu_liczona_wobec_wejscia(mock_embedder) -> None:
+    cascade, _ = build_cascade(mock_embedder)
     docs = [
         PipelineDocument(id=f"d{i}", content=tresc, stage=LegislativeStage.ENACTED)
         for i, tresc in enumerate([AKT_ENERGIA, AKT_ZDROWIE, AKT_ODPADY, AKT_ENERGIA.upper()])
@@ -238,3 +238,31 @@ async def test_redukcja_wolumenu_liczona_wobec_wejscia(embedder) -> None:
     assert response.total_documents == 4
     assert response.summarized_count == 1
     assert response.volume_reduction_rate == pytest.approx(0.75)
+
+
+async def test_kaskada_przyjmuje_pojedynczy_dokument(mock_embedder) -> None:
+    """Regresja: `PipelineRequest` dopuszcza jeden dokument, `ClusterRequest` wymagał dwóch.
+
+    Kaskada budowała `ClusterRequest` wewnątrz serwisu, więc wsad jednodokumentowy — wprost
+    dopuszczony przez kontrakt HTTP — wywalał `ValidationError` poza hierarchią domenową.
+    Nie łapał go żaden handler, więc klient dostawał 500 zamiast wyniku.
+    """
+    cascade, _ = build_cascade(mock_embedder)
+
+    response = await cascade.run(
+        PipelineRequest(
+            documents=[
+                PipelineDocument(
+                    id="jedyny", content=AKT_ENERGIA, stage=LegislativeStage.SEJM_READING_3
+                )
+            ]
+        )
+    )
+
+    assert response.total_documents == 1
+    assert response.clusters_formed == 1
+    assert len(response.clusters) == 1
+    assert response.clusters[0].member_document_ids == ["jedyny"]
+    assert response.summarized_count == 1
+    # Nic nie zostało odcięte, więc redukcja wolumenu jest zerowa, a nie ujemna.
+    assert response.volume_reduction_rate == 0.0

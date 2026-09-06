@@ -19,6 +19,7 @@ from barometr_ai.api.v1 import (
     radar,
     scoring,
     summaries,
+    usage,
 )
 
 api_v1_router = APIRouter(prefix="/v1")
@@ -39,3 +40,4 @@ api_v1_router.include_router(framing.router)
 api_v1_router.include_router(briefings.router)
 api_v1_router.include_router(local.router)
 api_v1_router.include_router(gov.router)
+api_v1_router.include_router(usage.router)

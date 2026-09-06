@@ -4,6 +4,7 @@ import pytest
 
 
 @pytest.mark.asyncio
+@pytest.mark.model
 async def test_novelty_endpoint(async_client):
     payload = {
         "new_text": "Projekt ustawy o cenach energii wpłynął do laski marszałkowskiej.",

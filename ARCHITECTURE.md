@@ -54,11 +54,14 @@ barometr-ai/
 │       ├── ports/                   # Interfejsy (abstrakcje / Protocols)
 │       │   ├── __init__.py
 │       │   ├── embedder.py          # Interfejs generowania wektorów
+│       │   ├── token_budget.py      # Interfejs magazynu liczników budżetu tokenów
 │       │   ├── classifier.py        # Interfejs klasyfikacji
 │       │   └── summarizer.py        # Interfejs LLM z proweniencją
 │       ├── adapters/                # Konkretne implementacje modeli i zewnętrznych API
 │       │   ├── __init__.py
 │       │   ├── local_embedder.py    # Implementacja modelu MMLW / FastEmbed / ONNX
+│       │   ├── in_memory_budget_store.py  # Licznik budżetu w pamięci procesu (domyślny)
+│       │   ├── redis_budget_store.py      # Licznik współdzielony (extra `redis`)
 │       │   ├── llm_client.py        # Klient LLM (Gemini / OpenAI) z retry i budżetem
 │       │   └── speech_adapter.py    # Adapter faster-whisper i pyannote
 │       ├── services/                # Logika aplikacyjna i orkiestracja
@@ -82,7 +85,7 @@ barometr-ai/
 │   ├── conftest.py                  # Wspólne fixtury pytest
 │   ├── unit/                        # Testy czysto jednostkowe (szybkie)
 │   ├── integration/                 # Testy endpointów FastAPI i pipeline'ów
-│   └── evaluation/                  # Golden set (200 dokumentów) i metryki jakości
+│   └── evaluation/                  # Golden set, baseline celności i metryki jakości
 ├── docs/
 │   ├── adr/                         # Architecture Decision Records (ADR)
 │   └── taxonomy/                    # Mapowania PKD i obszarów prawnych
