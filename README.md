@@ -70,8 +70,8 @@ brak klucza wywraca start serwisu.
 | `POST /v1/summarize` | streszczenie z proweniencją |
 | `POST /v1/score` | scoring istotności, model liniowy z jawnymi wagami |
 | `POST /v1/diff` | drzewiasty diff aktów (artykuł → ustęp → punkt → litera → tiret) i korelacja z uwagami RCL |
-| `POST /v1/novelty` | nowość vs recykling |
-| `POST /v1/ner` | ekstrakcja encji |
+| `POST /v1/novelty` | nowość vs recykling vs publicystyka |
+| `POST /v1/ner` | ekstrakcja encji i relacji z proweniencją |
 | `POST /v1/radar` | radar ciszy, wymaga `peer_media_mentions` |
 | `POST /v1/framing` | rama medialna |
 | `POST /v1/local/parse` | parser dokumentów BIP |
@@ -138,9 +138,14 @@ z jednostką, której faktycznie dotyczą.
 
 `RENUMBERED` wykrywane jest wyłącznie po **identycznej** treści jednostki, unikalnej po obu
 stronach. To model dominującego przypadku: przenumerowanie powstaje przez wstawienie
-przepisu wcześniej, co przesuwa kolejne bez ich zmiany. Jednostka jednocześnie przeniesiona
-i zmieniona wraca jako zwykła zmiana — zgadywanie takiego powiązania wymagałoby progu
-podobieństwa, którego nie da się uzasadnić (por. [ADR 0003](docs/adr/0003-brak-warstwy-near-duplicate.md)).
+przepisu wcześniej, co przesuwa kolejne bez ich zmiany.
+
+Jednostka jednocześnie przeniesiona i zmieniona nie jest z niczym wiązana — zgadywanie takiego
+powiązania wymagałoby progu podobieństwa, którego nie da się uzasadnić
+(por. [ADR 0003](docs/adr/0003-brak-warstwy-near-duplicate.md)). Wraca wtedy jako zwykła zmiana,
+a jej dokładna postać zależy od tego, czy zwolnione odniesienie zostało ponownie zajęte:
+jeśli tak — `MODIFIED` pod starym odniesieniem i `ADDED` pod nowym, jeśli nie — `DELETED`
+i `ADDED`.
 
 > **Zmiana kontraktu.** `article_ref` ma teraz postać kanoniczną bez kropki końcowej —
 > `Art. 2` zamiast `Art. 2.`, a dla jednostek zagnieżdżonych `Art. 2 ust. 1 pkt 3 lit. a`.

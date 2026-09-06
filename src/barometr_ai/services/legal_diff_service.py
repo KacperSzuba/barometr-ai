@@ -264,9 +264,13 @@ class LegalDiffService:
         Dopasowanie wyłącznie po **identycznej** treści własnej, i tylko gdy ta treść jest
         unikalna po obu stronach. To nie jest słabszy wariant dopasowania rozmytego, lecz
         model dominującego przypadku: przenumerowanie powstaje przez wstawienie jednostki
-        wcześniej, co przesuwa kolejne **bez ich zmiany**. Jednostka jednocześnie przeniesiona
-        i zmieniona wraca jako para `DELETED` + `ADDED` — zgadywanie takiego powiązania
-        wymagałoby progu podobieństwa, którego nie da się uzasadnić (por. ADR 0003).
+        wcześniej, co przesuwa kolejne **bez ich zmiany**.
+
+        Jednostka jednocześnie przeniesiona i zmieniona nie jest z niczym wiązana — zgadywanie
+        takiego powiązania wymagałoby progu podobieństwa, którego nie da się uzasadnić
+        (por. ADR 0003). Wraca wtedy do porównania po odniesieniu, a wynik zależy od tego, czy
+        zwolnione odniesienie zostało ponownie zajęte: jeśli tak, jest to `MODIFIED` pod starym
+        odniesieniem i `ADDED` pod nowym; jeśli nie — `DELETED` + `ADDED`.
         """
         by_text_a = cls._unique_by_text(units_a)
         by_text_b = cls._unique_by_text(units_b)
