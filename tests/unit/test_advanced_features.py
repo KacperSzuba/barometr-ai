@@ -95,7 +95,10 @@ def test_legal_diff_with_rcl_consultation_correlation() -> None:
 
     assert len(res.changes) == 1
     diff = res.changes[0]
-    assert diff.article_ref == "Art. 2."
+    # Postać kanoniczna bez kropki końcowej, zgodna z opisem pola `article_ref`
+    # (`Art. 4 ust. 2 pkt 3 lit. a`). Uwaga odwołuje się do "Art. 2." — normalizacja
+    # odniesienia znosi kropkę, więc powiązanie działa mimo różnicy zapisu.
+    assert diff.article_ref == "Art. 2"
     assert diff.change_type == "MODIFIED"
     assert diff.consultation_comment_id == "rcl_001"
     assert diff.consultation_submitter == "Polska Izba Gospodarcza"

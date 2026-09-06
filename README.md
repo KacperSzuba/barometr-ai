@@ -69,9 +69,9 @@ brak klucza wywraca start serwisu.
 | `POST /v1/pipeline` | **kaskada L1→L2→L3** w jednym żądaniu: klastrowanie → istotność → top-N → streszczenia |
 | `POST /v1/summarize` | streszczenie z proweniencją |
 | `POST /v1/score` | scoring istotności, model liniowy z jawnymi wagami |
-| `POST /v1/diff` | diff aktów i korelacja z uwagami RCL |
-| `POST /v1/novelty` | nowość vs recykling vs publicystyka |
-| `POST /v1/ner` | ekstrakcja encji i relacji z proweniencją |
+| `POST /v1/diff` | drzewiasty diff aktów (artykuł → ustęp → punkt → litera → tiret) i korelacja z uwagami RCL |
+| `POST /v1/novelty` | nowość vs recykling |
+| `POST /v1/ner` | ekstrakcja encji |
 | `POST /v1/radar` | radar ciszy, wymaga `peer_media_mentions` |
 | `POST /v1/framing` | rama medialna |
 | `POST /v1/local/parse` | parser dokumentów BIP |
@@ -128,6 +128,25 @@ gatunku.
 
 Zakres, świadome luki i warunki właściwego rozwiązania:
 [ADR 0004](docs/adr/0004-relacje-i-publicystyka-z-jawnych-przeslanek.md).
+
+## Diff aktów prawnych
+
+`POST /v1/diff` schodzi przez pełną hierarchię jednostek redakcyjnych i porównuje **treść
+własną** każdej z nich, bez treści dzieci. Zmiana jednego słowa w literze raportowana jest
+jako zmiana tej litery, a nie całego artykułu — dzięki temu uwagi z konsultacji wiążą się
+z jednostką, której faktycznie dotyczą.
+
+`RENUMBERED` wykrywane jest wyłącznie po **identycznej** treści jednostki, unikalnej po obu
+stronach. To model dominującego przypadku: przenumerowanie powstaje przez wstawienie
+przepisu wcześniej, co przesuwa kolejne bez ich zmiany. Jednostka jednocześnie przeniesiona
+i zmieniona wraca jako zwykła zmiana — zgadywanie takiego powiązania wymagałoby progu
+podobieństwa, którego nie da się uzasadnić (por. [ADR 0003](docs/adr/0003-brak-warstwy-near-duplicate.md)).
+
+> **Zmiana kontraktu.** `article_ref` ma teraz postać kanoniczną bez kropki końcowej —
+> `Art. 2` zamiast `Art. 2.`, a dla jednostek zagnieżdżonych `Art. 2 ust. 1 pkt 3 lit. a`.
+> Jest to postać opisana w kontrakcie DTO od początku. Nowe pole `previous_ref` niesie
+> odniesienie sprzed przenumerowania. `significant_changes_count` nie liczy już
+> `RENUMBERED`, bo przenumerowanie nie zmienia treści przepisu.
 
 ## Jakość
 

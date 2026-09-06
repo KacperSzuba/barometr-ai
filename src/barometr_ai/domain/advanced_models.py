@@ -69,7 +69,15 @@ class SilenceRadarResponse(BaseDTO):
 
 # --- /v1/diff (Legal Tree Diff & RCL Match) ---
 class LegalUnitDiff(BaseDTO):
-    article_ref: str = Field(..., description="np. Art. 4 ust. 2 pkt a")
+    article_ref: str = Field(
+        ...,
+        description="Pełna ścieżka jednostki redakcyjnej, np. `Art. 4 ust. 2 pkt 3 lit. a`. "
+        "Przy `RENUMBERED` jest to odniesienie w nowej wersji.",
+    )
+    previous_ref: str | None = Field(
+        default=None,
+        description="Odniesienie w poprzedniej wersji. Wypełnione wyłącznie dla `RENUMBERED`.",
+    )
     change_type: str = Field(..., description="ADDED | MODIFIED | DELETED | RENUMBERED")
     old_text: str = Field(default="")
     new_text: str = Field(default="")
@@ -82,7 +90,9 @@ class LegalUnitDiff(BaseDTO):
         description="Policzona pewność powiązania; None gdy uwagi nie udało się przypisać",
     )
     correlation_method: str | None = Field(
-        default=None, description="article_ref_exact | lexical_overlap — jak powstało powiązanie"
+        default=None,
+        description="article_ref_exact (uwaga wskazuje tę samą jednostkę) | "
+        "article_ref_ancestor (wskazuje jednostkę nadrzędną) | lexical_overlap",
     )
 
 
@@ -94,7 +104,9 @@ class LegalDiffRequest(BaseDTO):
 
 class LegalDiffResponse(BaseDTO):
     changes: list[LegalUnitDiff]
-    significant_changes_count: int
+    significant_changes_count: int = Field(
+        ..., description="Zmiany merytoryczne: ADDED + MODIFIED + DELETED, bez RENUMBERED"
+    )
     matched_consultations_count: int
 
 
