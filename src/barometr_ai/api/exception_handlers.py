@@ -10,6 +10,7 @@ from barometr_ai.core.exceptions import (
     BudgetExceededError,
     ModelInferenceError,
     ProvenanceViolationError,
+    ServiceAuthenticationError,
 )
 from barometr_ai.core.telemetry import current_trace_id
 
@@ -36,6 +37,21 @@ def register_exception_handlers(app: FastAPI) -> None:
         return JSONResponse(
             status_code=422,
             content=_error_payload("PROVENANCE_VIOLATION", exc),
+        )
+
+    @app.exception_handler(ServiceAuthenticationError)
+    async def service_authentication_handler(
+        request: Request, exc: ServiceAuthenticationError
+    ) -> JSONResponse:
+        """401 w tej samej kopercie co reszta błędów — klient ma jeden parser, nie dwa.
+
+        Ścieżka trafia do logu, bo powtarzające się odmowy na jednym endpoincie to albo
+        źle skonfigurowany klucz po stronie backendu, albo skanowanie z zewnątrz.
+        """
+        logger.warning("Odmowa dostępu do serwisu", extra={"path": request.url.path})
+        return JSONResponse(
+            status_code=401,
+            content=_error_payload("UNAUTHORIZED", exc),
         )
 
     @app.exception_handler(BudgetExceededError)

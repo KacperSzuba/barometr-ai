@@ -38,3 +38,16 @@ def test_wiele_workerow_jest_dozwolone_na_wspoldzielonym_liczniku() -> None:
 
 def test_domyslny_backend_to_licznik_w_pamieci() -> None:
     assert Settings(_env_file=None).token_budget_backend == "memory"
+
+
+def test_produkcja_bez_klucza_serwisowego_wywraca_start() -> None:
+    """Serwis nie zna użytkowników — bez klucza broni go wyłącznie założenie o sieci."""
+    with pytest.raises(ValidationError, match="SERVICE_API_KEY"):
+        Settings(
+            _env_file=None, app_env="production", anthropic_api_key="sk-test", service_api_key=""
+        )
+
+
+def test_klucz_serwisowy_wlacza_bramke() -> None:
+    assert Settings(_env_file=None).service_authentication_enabled is False
+    assert Settings(_env_file=None, service_api_key="sekret").service_authentication_enabled is True

@@ -26,3 +26,7 @@ class BudgetExceededError(BarometrAIError):
 
 class InvalidDocumentBatchError(BarometrAIError):
     """Raised when a batch of documents cannot be processed as submitted."""
+
+
+class ServiceAuthenticationError(BarometrAIError):
+    """Raised when a caller presents no service key, or the wrong one."""
