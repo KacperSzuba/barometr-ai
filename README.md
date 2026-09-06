@@ -69,7 +69,7 @@ brak klucza wywraca start serwisu.
 | `POST /v1/pipeline` | **kaskada L1→L2→L3** w jednym żądaniu: klastrowanie → istotność → top-N → streszczenia |
 | `POST /v1/summarize` | streszczenie z proweniencją |
 | `POST /v1/score` | scoring istotności, model liniowy z jawnymi wagami |
-| `POST /v1/diff` | drzewiasty diff aktów (artykuł → ustęp → punkt → litera → tiret) i korelacja z uwagami RCL |
+| `POST /v1/diff` | drzewiasty diff aktów (wstęp, artykuł → ustęp → punkt → litera → tiret) i korelacja z uwagami RCL |
 | `POST /v1/novelty` | nowość vs recykling vs publicystyka |
 | `POST /v1/ner` | ekstrakcja encji i relacji z proweniencją |
 | `POST /v1/radar` | radar ciszy, wymaga `peer_media_mentions` |
@@ -135,6 +135,12 @@ Zakres, świadome luki i warunki właściwego rozwiązania:
 własną** każdej z nich, bez treści dzieci. Zmiana jednego słowa w literze raportowana jest
 jako zmiana tej litery, a nie całego artykułu — dzięki temu uwagi z konsultacji wiążą się
 z jednostką, której faktycznie dotyczą.
+
+Tekst przed pierwszym artykułem wraca jako jednostka `Wstęp`: obejmuje tytuł aktu i preambułę,
+jeśli akt ją ma. Nie rozdzielamy ich na dwie jednostki, bo granica między nimi nie wynika
+z żadnego znacznika, a zgadnięta dawałaby odniesienia nie do obronienia. Wstęp podlega tej
+samej hierarchii co artykuły, więc wyliczenie w preambule ma odniesienia `Wstęp pkt 1`,
+`Wstęp pkt 2` i tak dalej.
 
 `RENUMBERED` wykrywane jest wyłącznie po **identycznej** treści jednostki, unikalnej po obu
 stronach. To model dominującego przypadku: przenumerowanie powstaje przez wstawienie

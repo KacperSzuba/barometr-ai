@@ -218,3 +218,69 @@ def test_uwaga_do_artykulu_wiaze_sie_slabiej_niz_do_jednostki() -> None:
     assert zmiana.correlation_method == "article_ref_ancestor"
     # Ścieżka „Art. 2 ust. 2 pkt 2 lit. b” ma 4 poziomy, uwaga wskazuje 1.
     assert zmiana.correlation_confidence == 0.25
+
+
+# --- Wstęp: tytuł aktu i preambuła ---------------------------------------------------------
+
+
+def test_tresc_przed_pierwszym_artykulem_nie_znika() -> None:
+    """Regresja: tekst przed pierwszym nagłówkiem był po cichu porzucany.
+
+    Skutkiem było to, że zmiana tytułu aktu albo preambuły nie pojawiała się w diffie w ogóle
+    — a tytuł jest tym, po czym akt się rozpoznaje.
+    """
+    units = parse_legal_units(
+        "USTAWA z dnia 1 stycznia 2026 r. o odpadach.\nArt. 1. Przepisy ogólne."
+    )
+
+    assert "Wstęp" in units
+    assert units["Wstęp"].text == "USTAWA z dnia 1 stycznia 2026 r. o odpadach."
+    assert "Art. 1" in units
+
+
+def test_zmiana_tytulu_aktu_jest_raportowana() -> None:
+    response = diff(
+        "USTAWA z dnia 1 stycznia 2026 r. o odpadach.\nArt. 1. Przepis.",
+        "USTAWA z dnia 1 stycznia 2026 r. o odpadach i opakowaniach.\nArt. 1. Przepis.",
+    )
+
+    assert [(c.article_ref, c.change_type) for c in response.changes] == [("Wstęp", "MODIFIED")]
+    assert response.significant_changes_count == 1
+
+
+def test_akt_bez_wstepu_nie_dostaje_pustej_jednostki() -> None:
+    """Akt zaczynający się wprost od artykułu nie ma wstępu — nie wolno go dopisywać."""
+    assert "Wstęp" not in parse_legal_units(AKT)
+
+
+def test_wstep_schodzi_przez_te_sama_hierarchie() -> None:
+    """Preambuła bywa wyliczeniem; obsługuje ją ta sama maszyneria co artykuły."""
+    units = parse_legal_units(
+        "USTAWA o wsparciu.\nMając na względzie:\n1) ochronę odbiorców;\n2) stabilność sieci;\n"
+        "Art. 1. Przepis."
+    )
+
+    assert "Wstęp pkt 1" in units
+    assert units["Wstęp pkt 1"].text == "ochronę odbiorców;"
+    assert "Wstęp pkt 2" in units
+
+
+def test_uwaga_moze_wskazac_wstep() -> None:
+    """Uwagi z konsultacji dotyczą też preambuły — musi dać się do niej odwołać."""
+    response = diff(
+        "USTAWA o odpadach.\nArt. 1. Przepis.",
+        "USTAWA o odpadach i opakowaniach.\nArt. 1. Przepis.",
+        comments=[
+            {
+                "id": "rcl_007",
+                "article_ref": "Wstęp",
+                "text": "Wnosimy o rozszerzenie tytułu o opakowania.",
+                "submitter": "Izba Recyklingu",
+            }
+        ],
+    )
+
+    change = response.changes[0]
+    assert change.consultation_comment_id == "rcl_007"
+    assert change.correlation_method == "article_ref_exact"
+    assert change.correlation_confidence == 1.0

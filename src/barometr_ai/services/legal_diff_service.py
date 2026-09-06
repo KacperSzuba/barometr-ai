@@ -1,9 +1,10 @@
 """Drzewiasty diff aktów prawnych i powiązanie zmian z uwagami RCL (F3).
 
 Podział idzie przez pełną hierarchię jednostek redakcyjnych z zasad techniki prawodawczej:
-**artykuł → ustęp → punkt → litera → tiret**. Poprzednia wersja zatrzymywała się na artykule,
-więc zmiana jednego słowa w jednym punkcie oznaczała cały artykuł jako `MODIFIED` i wiązała
-z nim wszystkie uwagi z konsultacji.
+**artykuł → ustęp → punkt → litera → tiret**, a przed nimi stoi `Wstęp` obejmujący tytuł aktu
+i preambułę. Poprzednia wersja zatrzymywała się na artykule, więc zmiana jednego słowa
+w jednym punkcie oznaczała cały artykuł jako `MODIFIED` i wiązała z nim wszystkie uwagi
+z konsultacji, a tekst przed pierwszym artykułem znikał z porównania bez śladu.
 
 Porównywana jest **treść własna** jednostki, bez treści jej dzieci. Dzięki temu zmiana w
 literze nie zaraża punktu, ustępu i artykułu — raportowana jest najgłębsza jednostka, która
@@ -34,6 +35,13 @@ _WORD = re.compile(r"[0-9a-ząćęłńóśźż]{4,}", re.IGNORECASE)
 
 #: Minimalne pokrycie leksykalne, poniżej którego uwagi nie wiążemy ze zmianą.
 _MIN_OVERLAP = 0.15
+
+#: Odniesienie jednostki obejmującej wszystko przed pierwszym nagłówkiem artykułu: tytuł aktu
+#: oraz — jeżeli występuje — preambułę. Nie rozdzielamy ich na dwie jednostki, bo granica
+#: między nimi nie wynika z żadnego znacznika: preambuła bywa bez formuły „stanowi się, co
+#: następuje", a tytuł potrafi zająć kilka wierszy. Zgadywanie tej granicy dawałoby odniesienia,
+#: których nie da się obronić; jedna jednostka o jawnym zakresie jest uczciwsza.
+PREAMBLE_REF = "Wstęp"
 
 _LEVEL_ARTICLE = 0
 _LEVEL_USTEP = 1
@@ -90,10 +98,10 @@ def parse_legal_units(text: str) -> dict[str, LegalUnit]:
     """
     units: dict[str, LegalUnit] = {}
 
-    for article_ref, body in _split_articles(text):
-        stack: list[tuple[int, tuple[str, ...]]] = [(_LEVEL_ARTICLE, (article_ref,))]
-        _append_text(units, (article_ref,), "")
-        current: tuple[str, ...] = (article_ref,)
+    for unit_ref, body in _split_top_level(text):
+        stack: list[tuple[int, tuple[str, ...]]] = [(_LEVEL_ARTICLE, (unit_ref,))]
+        _append_text(units, (unit_ref,), "")
+        current: tuple[str, ...] = (unit_ref,)
         tiret_counters: dict[tuple[str, ...], int] = {}
 
         for line in body.splitlines():
@@ -153,12 +161,22 @@ def _append_text(units: dict[str, LegalUnit], parts: tuple[str, ...], addition: 
     units[ref] = LegalUnit(ref=ref, parts=parts, text=normalize_unit_text(merged))
 
 
-def _split_articles(text: str) -> list[tuple[str, str]]:
-    """Dzieli akt na artykuły. Powtórzony nagłówek dokleja treść zamiast ją nadpisywać."""
+def _split_top_level(text: str) -> list[tuple[str, str]]:
+    """Dzieli akt na jednostki najwyższego poziomu: wstęp i artykuły.
+
+    Tekst przed pierwszym nagłówkiem był wcześniej po cichu porzucany, więc zmiana tytułu aktu
+    albo preambuły nie pojawiała się w diffie w ogóle. Wraca teraz jako jednostka `Wstęp`.
+
+    Powtórzony nagłówek dokleja treść zamiast ją nadpisywać.
+    """
     splits = _ARTICLE_HEADER.split(text)
 
     if len(splits) <= 1:
         return [("Art. 1", text)] if text.strip() else []
+
+    units: list[tuple[str, str]] = []
+    if splits[0].strip():
+        units.append((PREAMBLE_REF, splits[0]))
 
     ordered: list[str] = []
     bodies: dict[str, str] = {}
@@ -170,7 +188,9 @@ def _split_articles(text: str) -> list[tuple[str, str]]:
         else:
             bodies[ref] = body
             ordered.append(ref)
-    return [(ref, bodies[ref]) for ref in ordered]
+
+    units.extend((ref, bodies[ref]) for ref in ordered)
+    return units
 
 
 def _canonical_article_ref(header: str) -> str:
